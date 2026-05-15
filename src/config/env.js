@@ -5,11 +5,14 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
   CORS_ORIGIN: z.string().default('http://localhost:5174'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DIRECT_URL: z.string().optional(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+  FIREBASE_API_KEY: z.string().min(1, 'FIREBASE_API_KEY is required'),
+  FIREBASE_AUTH_DOMAIN: z.string().min(1, 'FIREBASE_AUTH_DOMAIN is required'),
+  FIREBASE_PROJECT_ID: z.string().min(1, 'FIREBASE_PROJECT_ID is required'),
+  FIREBASE_STORAGE_BUCKET: z.string().min(1, 'FIREBASE_STORAGE_BUCKET is required'),
+  FIREBASE_MESSAGING_SENDER_ID: z.string().min(1, 'FIREBASE_MESSAGING_SENDER_ID is required'),
+  FIREBASE_APP_ID: z.string().min(1, 'FIREBASE_APP_ID is required'),
+  FIREBASE_MEASUREMENT_ID: z.string().optional(),
+  FIREBASE_SERVICE_ACCOUNT_KEY_PATH: z.string().default('./firebase-service-account-key.json'),
 })
 
 const parsed = envSchema.safeParse(process.env)
@@ -24,9 +27,16 @@ export const env = {
   nodeEnv: parsed.data.NODE_ENV,
   port: parsed.data.PORT,
   corsOrigin: parsed.data.CORS_ORIGIN,
-  databaseUrl: parsed.data.DATABASE_URL,
-  directUrl: parsed.data.DIRECT_URL,
-  supabaseUrl: parsed.data.SUPABASE_URL,
-  supabasePublishableKey: parsed.data.SUPABASE_PUBLISHABLE_KEY,
+  firebase: {
+    apiKey: parsed.data.FIREBASE_API_KEY,
+    authDomain: parsed.data.FIREBASE_AUTH_DOMAIN,
+    projectId: parsed.data.FIREBASE_PROJECT_ID,
+    storageBucket: parsed.data.FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: parsed.data.FIREBASE_MESSAGING_SENDER_ID,
+    appId: parsed.data.FIREBASE_APP_ID,
+    measurementId: parsed.data.FIREBASE_MEASUREMENT_ID,
+    serviceAccountKeyPath: parsed.data.FIREBASE_SERVICE_ACCOUNT_KEY_PATH,
+  },
+}
   supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
 }
