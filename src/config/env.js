@@ -38,5 +38,3 @@ export const env = {
     serviceAccountKeyPath: parsed.data.FIREBASE_SERVICE_ACCOUNT_KEY_PATH,
   },
 }
-  supabaseServiceRoleKey: parsed.data.SUPABASE_SERVICE_ROLE_KEY,
-}
