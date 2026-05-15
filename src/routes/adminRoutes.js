@@ -4,7 +4,11 @@ import {
   getAdminQuotes,
   getAdminReviews,
   getAdminSummary,
+  getAdminAddresses,
+  getAdminOrders,
+  getAdminUsers,
   patchAdminMessage,
+  patchAdminOrder,
   patchAdminQuote,
   patchAdminReview,
   removeAdminMessage,
@@ -15,6 +19,7 @@ import { asyncHandler } from '../middleware/asyncHandler.js'
 import { validate } from '../middleware/validate.js'
 import {
   adminIdSchema,
+  adminOrderStatusSchema,
   adminReviewUpdateSchema,
   adminStatusSchema,
 } from '../validators/adminSchemas.js'
@@ -31,5 +36,9 @@ router.delete('/messages/:id', validate(adminIdSchema), asyncHandler(removeAdmin
 router.get('/quotes', asyncHandler(getAdminQuotes))
 router.patch('/quotes/:id', validate(adminStatusSchema), asyncHandler(patchAdminQuote))
 router.delete('/quotes/:id', validate(adminIdSchema), asyncHandler(removeAdminQuote))
+router.get('/users', asyncHandler(getAdminUsers))
+router.get('/addresses', asyncHandler(getAdminAddresses))
+router.get('/orders', asyncHandler(getAdminOrders))
+router.patch('/orders/:id', validate(adminOrderStatusSchema), asyncHandler(patchAdminOrder))
 
 export default router

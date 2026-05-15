@@ -14,7 +14,7 @@ This command runs `node server.js` which:
 2. ✅ Initializes the Express app
 3. ✅ Initializes Firebase Admin SDK for Firestore
 4. ✅ Starts listening on port 4000
-5. ✅ Outputs: `Backend API running on http://localhost:4000`
+5. ✅ Outputs: `Backend API running on https://backend-3mp3.onrender.com`
 
 ---
 
@@ -72,7 +72,7 @@ FIREBASE_SERVICE_ACCOUNT_JSON=paste-your-service-account-json-here
 1. Click "Create Web Service"
 2. Render automatically deploys your app
 3. View logs in real-time
-4. Once deployed, you get a URL like: `https://nexora-backend.onrender.com`
+4. Once deployed, you get a URL like: `https://backend-3mp3.onrender.com`
 
 ---
 
@@ -88,8 +88,8 @@ FIREBASE_SERVICE_ACCOUNT_JSON=paste-your-service-account-json-here
 2. Start Phase
    └─ Execute: npm start
    └─ → node server.js
-   └─ Backend API running on http://localhost:4000
-   └─ Render exposes on: https://nexora-backend.onrender.com
+   └─ Backend API running on https://backend-3mp3.onrender.com
+   └─ Render exposes on: https://backend-3mp3.onrender.com
 
 3. Health Check
    └─ Render checks if app responds to requests
@@ -163,7 +163,7 @@ In Render dashboard:
 ### Test Your API
 ```bash
 # Replace with your Render URL
-curl https://nexora-backend.onrender.com/api/health
+curl https://backend-3mp3.onrender.com/api/health
 
 # Expected response:
 # {"service": "akiwa-backend", "status": "ok"}
@@ -172,7 +172,7 @@ curl https://nexora-backend.onrender.com/api/health
 ### Update Frontend URL
 In your React app, update API calls to:
 ```javascript
-const API_URL = 'https://nexora-backend.onrender.com'
+const API_URL = 'https://backend-3mp3.onrender.com/api'
 ```
 
 ### Monitoring

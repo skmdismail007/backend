@@ -19,16 +19,16 @@ npm start            # This is YOUR START COMMAND
   ↓
 node server.js       # Starts Express server
   ↓
-Backend API running on http://localhost:4000
+Backend API running on https://backend-3mp3.onrender.com
   ↓
 Render exposes publicly at:
-https://nexora-backend.onrender.com
+https://backend-3mp3.onrender.com
 ```
 
 ### 3. Health Check
 Render automatically checks if your app is healthy:
 ```
-GET https://nexora-backend.onrender.com/api/health
+GET https://backend-3mp3.onrender.com/api/health
 
 Expected Response:
 {
@@ -92,10 +92,10 @@ npm start...
 > nexora-backend@1.0.0 start
 > node server.js
 
-Backend API running on http://localhost:4000
+Backend API running on https://backend-3mp3.onrender.com
 
 ✓ Service is live
-✓ Deployed to: https://nexora-backend.onrender.com
+✓ Deployed to: https://backend-3mp3.onrender.com
 ```
 
 ---
@@ -105,10 +105,10 @@ Backend API running on http://localhost:4000
 Change your API base URL from:
 ```javascript
 // OLD (Local Development)
-const API_URL = 'http://localhost:4000'
+const API_URL = 'https://backend-3mp3.onrender.com/api'
 
 // NEW (Production on Render)
-
+const API_URL = 'https://backend-3mp3.onrender.com/api'
 ```
 
 ---

@@ -30,6 +30,7 @@ export const env = {
   nodeEnv: parsed.data.NODE_ENV,
   port: parsed.data.PORT,
   corsOrigin: parsed.data.CORS_ORIGIN,
+  corsOrigins: parsed.data.CORS_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean),
   firebase: {
     apiKey: parsed.data.FIREBASE_API_KEY,
     authDomain: parsed.data.FIREBASE_AUTH_DOMAIN,

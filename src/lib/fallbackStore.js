@@ -87,6 +87,9 @@ async function getStore() {
       ],
     messages: runtime.messages || [],
     quotes: runtime.quotes || [],
+    users: runtime.users || [],
+    addresses: runtime.addresses || [],
+    orders: runtime.orders || [],
   }
 
   return store
@@ -255,6 +258,124 @@ export const fallbackStore = {
     return (await getStore()).quotes
   },
 
+  async listUsers() {
+    const data = await getStore()
+    return data.users.map(({ password, ...user }) => user)
+  },
+
+  async registerUser(user) {
+    const data = await getStore()
+    const existing = data.users.find((item) => item.email.toLowerCase() === user.email.toLowerCase())
+    if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 409 })
+
+    const record = {
+      id: createId('user'),
+      createdAt: now(),
+      updatedAt: now(),
+      ...user,
+    }
+    data.users.unshift(record)
+    await saveStore()
+    const { password, ...safeUser } = record
+    return safeUser
+  },
+
+  async loginUser(email, password) {
+    const data = await getStore()
+    const user = data.users.find(
+      (item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password,
+    )
+    if (!user) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 })
+    const { password: _password, ...safeUser } = user
+    return safeUser
+  },
+
+  async updateUser(id, updates) {
+    const data = await getStore()
+    const user = data.users.find((item) => item.id === id)
+    if (!user) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    Object.assign(user, updates, { updatedAt: now() })
+    await saveStore()
+    const { password, ...safeUser } = user
+    return safeUser
+  },
+
+  async listAddresses(userId) {
+    const data = await getStore()
+    return data.addresses.filter((item) => !userId || item.userId === userId)
+  },
+
+  async createAddress(userId, address) {
+    const data = await getStore()
+    const userAddresses = data.addresses.filter((item) => item.userId === userId)
+    const record = {
+      id: createId('address'),
+      userId,
+      isDefault: address.isDefault ?? userAddresses.length === 0,
+      createdAt: now(),
+      updatedAt: now(),
+      ...address,
+    }
+    if (record.isDefault) {
+      data.addresses.forEach((item) => {
+        if (item.userId === userId) item.isDefault = false
+      })
+    }
+    data.addresses.unshift(record)
+    await saveStore()
+    return record
+  },
+
+  async setDefaultAddress(userId, addressId) {
+    const data = await getStore()
+    const address = data.addresses.find((item) => item.userId === userId && item.id === addressId)
+    if (!address) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    data.addresses.forEach((item) => {
+      if (item.userId === userId) item.isDefault = item.id === addressId
+    })
+    await saveStore()
+    return address
+  },
+
+  async deleteAddress(userId, addressId) {
+    const data = await getStore()
+    const address = data.addresses.find((item) => item.userId === userId && item.id === addressId)
+    data.addresses = data.addresses.filter((item) => !(item.userId === userId && item.id === addressId))
+    await saveStore()
+    return address
+  },
+
+  async listOrders(userId) {
+    const data = await getStore()
+    return data.orders.filter((item) => !userId || item.userId === userId)
+  },
+
+  async createOrder(userId, order) {
+    const data = await getStore()
+    const record = {
+      id: createId('order'),
+      userId,
+      status: order.status || 'pending',
+      trackingNumber: order.trackingNumber || `AKIWA${Date.now().toString().slice(-8).toUpperCase()}`,
+      createdAt: now(),
+      updatedAt: now(),
+      ...order,
+    }
+    data.orders.unshift(record)
+    await saveStore()
+    return record
+  },
+
+  async updateOrderStatus(id, status) {
+    const data = await getStore()
+    const order = data.orders.find((item) => item.id === id)
+    if (!order) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    order.status = status
+    order.updatedAt = now()
+    await saveStore()
+    return order
+  },
+
   async updateQuote(id, status) {
     const quote = (await getStore()).quotes.find((item) => item.id === id)
     if (!quote) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
@@ -281,6 +402,8 @@ export const fallbackStore = {
         reviews: data.reviews.length,
         newMessages: data.messages.filter((item) => item.status === 'new').length,
         newQuotes: data.quotes.filter((item) => item.status === 'new').length,
+        users: data.users.length,
+        orders: data.orders.length,
       },
       latestMessages: data.messages.slice(0, 5),
       latestQuotes: data.quotes.slice(0, 5),

@@ -22,8 +22,8 @@
         "1 year service support"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.659Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "8ch-nvr-kit",
@@ -47,8 +47,8 @@
         "Setup support"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "poe-switch",
@@ -71,8 +71,8 @@
         "Quick setup notes"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "cctv-cable-roll",
@@ -95,8 +95,8 @@
         "Installer support"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "surveillance-hard-drive",
@@ -119,8 +119,8 @@
         "Setup help"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "camera-power-supply",
@@ -143,8 +143,8 @@
         "Basic support"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     }
   ],
   "services": [
@@ -164,8 +164,8 @@
         "Basic SEO structure"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "ecommerce-website",
@@ -183,8 +183,8 @@
         "Customer trust blocks"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "custom-react-app",
@@ -202,8 +202,8 @@
         "Performance-focused build"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     },
     {
       "id": "website-redesign",
@@ -221,8 +221,8 @@
         "Launch refinement"
       ],
       "isActive": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     }
   ],
   "reviews": [
@@ -234,30 +234,13 @@
       "image": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=700&q=80",
       "text": "Akiwa helped us choose cameras, storage, and cabling without overcomplicating the order.",
       "isApproved": true,
-      "createdAt": "2026-05-15T05:36:57.042Z",
-      "updatedAt": "2026-05-15T05:36:57.042Z"
+      "createdAt": "2026-05-15T07:55:02.660Z",
+      "updatedAt": "2026-05-15T07:55:02.660Z"
     }
   ],
   "messages": [],
-  "quotes": []
-}  {
-      "id": "quote-1778823425609-ade076",
-      "status": "new",
-      "createdAt": "2026-05-15T05:37:05.609Z",
-      "updatedAt": "2026-05-15T05:37:05.609Z",
-      "name": "Test User",
-      "email": "test@example.com",
-      "phone": "9876543210",
-      "items": [
-        {
-          "id": "quote-item-1778823425609-ac5aa8",
-          "productId": "4mp-dome-camera",
-          "name": "4MP Smart Dome CCTV Camera",
-          "quantity": 1,
-          "price": 89
-        }
-      ],
-      "note": "Kolkata"
-    }
-  ]
+  "quotes": [],
+  "users": [],
+  "addresses": [],
+  "orders": []
 }

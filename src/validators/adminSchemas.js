@@ -15,6 +15,15 @@ export const adminStatusSchema = z.object({
   }),
 })
 
+export const adminOrderStatusSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+  body: z.object({
+    status: z.enum(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']),
+  }),
+})
+
 export const adminReviewUpdateSchema = z.object({
   params: z.object({
     id: z.string().min(1),

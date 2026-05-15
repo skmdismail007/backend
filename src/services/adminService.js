@@ -15,6 +15,11 @@ async function latest(collectionName, limit = 5) {
   return snapshot.docs.map(mapDoc)
 }
 
+async function listCollection(collectionName) {
+  const snapshot = await db.collection(collectionName).get()
+  return snapshot.docs.map(mapDoc)
+}
+
 export async function getDashboardSummary() {
   if (!isFirestoreConfigured) return fallbackStore.summary()
 
@@ -37,6 +42,8 @@ export async function getDashboardSummary() {
         reviews,
         newMessages: messages,
         newQuotes: quotes,
+        users: await countCollection('users'),
+        orders: await countCollection('orders'),
       },
       latestMessages,
       latestQuotes,
@@ -44,6 +51,31 @@ export async function getDashboardSummary() {
   } catch {
     return fallbackStore.summary()
   }
+}
+
+export async function listUsers() {
+  if (!isFirestoreConfigured) return fallbackStore.listUsers()
+  const users = await listCollection('users')
+  return users.map(({ password, ...user }) => user)
+}
+
+export async function listAddresses() {
+  if (!isFirestoreConfigured) return fallbackStore.listAddresses()
+  return listCollection('addresses')
+}
+
+export async function listOrders() {
+  if (!isFirestoreConfigured) return fallbackStore.listOrders()
+  return listCollection('orders')
+}
+
+export async function updateOrderStatus(id, status) {
+  if (!isFirestoreConfigured) return fallbackStore.updateOrderStatus(id, status)
+
+  const update = { status, updatedAt: new Date() }
+  await db.collection('orders').doc(id).update(update)
+  const doc = await db.collection('orders').doc(id).get()
+  return mapDoc(doc)
 }
 
 export async function listAllReviews() {
