@@ -7,6 +7,12 @@ function mapDoc(doc) {
   return { id: doc.id, ...doc.data() }
 }
 
+function withoutPassword(user) {
+  const safeUser = { ...user }
+  delete safeUser.password
+  return safeUser
+}
+
 export async function listReviews() {
   if (!isFirestoreConfigured) return fallbackStore.listReviews(true)
 
@@ -120,8 +126,7 @@ export async function registerUser(data) {
     updatedAt: new Date(),
   }
   const docRef = await db.collection('users').add(user)
-  const { password, ...safeUser } = user
-  return { id: docRef.id, ...safeUser }
+  return { id: docRef.id, ...withoutPassword(user) }
 }
 
 export async function loginUser(email, password) {
@@ -137,8 +142,7 @@ export async function loginUser(email, password) {
   if (snapshot.empty) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 })
 
   const user = mapDoc(snapshot.docs[0])
-  const { password: _password, ...safeUser } = user
-  return safeUser
+  return withoutPassword(user)
 }
 
 export async function updateUser(id, updates) {
@@ -147,8 +151,7 @@ export async function updateUser(id, updates) {
   const updateData = { ...updates, updatedAt: new Date() }
   await db.collection('users').doc(id).update(updateData)
   const user = mapDoc(await db.collection('users').doc(id).get())
-  const { password, ...safeUser } = user
-  return safeUser
+  return withoutPassword(user)
 }
 
 export async function listUserAddresses(userId) {

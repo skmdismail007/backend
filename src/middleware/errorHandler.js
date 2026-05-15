@@ -3,9 +3,16 @@ import { ZodError } from 'zod'
 export function errorHandler(error, _request, response, next) {
   void next
   if (error instanceof ZodError) {
+    const fieldErrors = error.flatten().fieldErrors
+    const details = error.issues.map((issue) => {
+      const field = issue.path.filter((part) => part !== 'body' && part !== 'params' && part !== 'query').join('.')
+      return `${field || 'request'}: ${issue.message}`
+    })
+
     response.status(400).json({
       message: 'Validation error',
-      errors: error.flatten().fieldErrors,
+      errors: fieldErrors,
+      details,
     })
     return
   }

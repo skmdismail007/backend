@@ -5,6 +5,12 @@ function mapDoc(doc) {
   return { id: doc.id, ...doc.data() }
 }
 
+function withoutPassword(user) {
+  const safeUser = { ...user }
+  delete safeUser.password
+  return safeUser
+}
+
 async function countCollection(collectionName, queryBuilder = (collection) => collection) {
   const snapshot = await queryBuilder(db.collection(collectionName)).get()
   return snapshot.size
@@ -56,7 +62,47 @@ export async function getDashboardSummary() {
 export async function listUsers() {
   if (!isFirestoreConfigured) return fallbackStore.listUsers()
   const users = await listCollection('users')
-  return users.map(({ password, ...user }) => user)
+  return users.map(withoutPassword)
+}
+
+export async function getUserDetails(id) {
+  if (!isFirestoreConfigured) return fallbackStore.getUserDetails(id)
+
+  try {
+    const [userDoc, addressSnapshot, orderSnapshot] = await Promise.all([
+      db.collection('users').doc(id).get(),
+      db.collection('addresses').where('userId', '==', id).get(),
+      db.collection('orders').where('userId', '==', id).get(),
+    ])
+
+    if (!userDoc.exists) {
+      throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    }
+
+    const user = withoutPassword(mapDoc(userDoc))
+    const addresses = addressSnapshot.docs.map(mapDoc)
+    const orders = orderSnapshot.docs.map(mapDoc)
+    const phone =
+      user.phone ||
+      addresses.find((address) => address.phone)?.phone ||
+      orders.find((order) => order.phone)?.phone ||
+      orders.find((order) => order.address?.phone)?.address?.phone ||
+      ''
+
+    return {
+      user,
+      addresses,
+      orders,
+      contact: {
+        name: user.name,
+        email: user.email || orders.find((order) => order.email)?.email || '',
+        phone,
+      },
+    }
+  } catch (error) {
+    if (error.statusCode === 404) throw error
+    return fallbackStore.getUserDetails(id)
+  }
 }
 
 export async function listAddresses() {

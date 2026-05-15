@@ -8,7 +8,6 @@ import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { env } from '../config/env.js'
 
-let app
 const serviceAccountKeyPath = resolve(process.cwd(), env.firebase.serviceAccountKeyPath)
 
 export const isFirestoreConfigured = Boolean(
@@ -49,7 +48,7 @@ try {
     storageBucket: env.firebase.storageBucket,
   })
 
-  app = admin.app()
+  admin.app()
   console.log('✓ Firebase Admin SDK initialized successfully')
 } catch (error) {
   console.error('Failed to initialize Firebase Admin SDK:', error.message)

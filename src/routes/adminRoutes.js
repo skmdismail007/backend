@@ -6,6 +6,7 @@ import {
   getAdminSummary,
   getAdminAddresses,
   getAdminOrders,
+  getAdminUserDetails,
   getAdminUsers,
   patchAdminMessage,
   patchAdminOrder,
@@ -37,6 +38,7 @@ router.get('/quotes', asyncHandler(getAdminQuotes))
 router.patch('/quotes/:id', validate(adminStatusSchema), asyncHandler(patchAdminQuote))
 router.delete('/quotes/:id', validate(adminIdSchema), asyncHandler(removeAdminQuote))
 router.get('/users', asyncHandler(getAdminUsers))
+router.get('/users/:id/details', validate(adminIdSchema), asyncHandler(getAdminUserDetails))
 router.get('/addresses', asyncHandler(getAdminAddresses))
 router.get('/orders', asyncHandler(getAdminOrders))
 router.patch('/orders/:id', validate(adminOrderStatusSchema), asyncHandler(patchAdminOrder))

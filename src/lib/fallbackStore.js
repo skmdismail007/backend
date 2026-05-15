@@ -60,6 +60,20 @@ function normalizeService(service) {
   }
 }
 
+function mergeById(baseItems, overrideItems = []) {
+  const records = new Map(baseItems.map((item) => [item.id, item]))
+  overrideItems.forEach((item) => {
+    records.set(item.id, { ...records.get(item.id), ...item })
+  })
+  return Array.from(records.values())
+}
+
+function withoutPassword(user) {
+  const safeUser = { ...user }
+  delete safeUser.password
+  return safeUser
+}
+
 async function getStore() {
   if (store) return store
 
@@ -67,8 +81,8 @@ async function getStore() {
   const runtime = await readJson(runtimePath, {})
 
   store = {
-    products: runtime.products || (catalog.products || []).map(normalizeProduct),
-    services: runtime.services || (catalog.services || []).map(normalizeService),
+    products: mergeById((catalog.products || []).map(normalizeProduct), runtime.products),
+    services: mergeById((catalog.services || []).map(normalizeService), runtime.services),
     reviews:
       runtime.reviews ||
       [
@@ -260,7 +274,34 @@ export const fallbackStore = {
 
   async listUsers() {
     const data = await getStore()
-    return data.users.map(({ password, ...user }) => user)
+    return data.users.map(withoutPassword)
+  },
+
+  async getUserDetails(id) {
+    const data = await getStore()
+    const userRecord = data.users.find((item) => item.id === id)
+    if (!userRecord) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+
+    const user = withoutPassword(userRecord)
+    const addresses = data.addresses.filter((item) => item.userId === id)
+    const orders = data.orders.filter((item) => item.userId === id)
+    const phone =
+      user.phone ||
+      addresses.find((address) => address.phone)?.phone ||
+      orders.find((order) => order.phone)?.phone ||
+      orders.find((order) => order.address?.phone)?.address?.phone ||
+      ''
+
+    return {
+      user,
+      addresses,
+      orders,
+      contact: {
+        name: user.name,
+        email: user.email || orders.find((order) => order.email)?.email || '',
+        phone,
+      },
+    }
   },
 
   async registerUser(user) {
@@ -276,8 +317,7 @@ export const fallbackStore = {
     }
     data.users.unshift(record)
     await saveStore()
-    const { password, ...safeUser } = record
-    return safeUser
+    return withoutPassword(record)
   },
 
   async loginUser(email, password) {
@@ -286,8 +326,7 @@ export const fallbackStore = {
       (item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password,
     )
     if (!user) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 })
-    const { password: _password, ...safeUser } = user
-    return safeUser
+    return withoutPassword(user)
   },
 
   async updateUser(id, updates) {
@@ -296,8 +335,7 @@ export const fallbackStore = {
     if (!user) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
     Object.assign(user, updates, { updatedAt: now() })
     await saveStore()
-    const { password, ...safeUser } = user
-    return safeUser
+    return withoutPassword(user)
   },
 
   async listAddresses(userId) {

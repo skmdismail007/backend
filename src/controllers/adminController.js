@@ -3,6 +3,7 @@ import {
   deleteQuote,
   deleteReview,
   getDashboardSummary,
+  getUserDetails,
   listAddresses,
   listAllReviews,
   listOrders,
@@ -68,6 +69,10 @@ export async function removeAdminQuote(request, response) {
 
 export async function getAdminUsers(_request, response) {
   response.json(await listUsers())
+}
+
+export async function getAdminUserDetails(request, response) {
+  response.json(await getUserDetails(request.validated.params.id))
 }
 
 export async function getAdminAddresses(_request, response) {
