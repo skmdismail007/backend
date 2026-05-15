@@ -49,10 +49,15 @@ Copy these to Render Dashboard → Your Service → Environment:
 ```
 NODE_ENV=production
 PORT=4000
-DATABASE_URL=postgresql://user:password@host/database
 CORS_ORIGIN=https://your-frontend-url.onrender.com
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+FIREBASE_API_KEY=AIzaSyCJ3dtb_nv5zstIVtRgbDbvoJQE7e3cPN4
+FIREBASE_AUTH_DOMAIN=ebackend-66bde.firebaseapp.com
+FIREBASE_PROJECT_ID=ebackend-66bde
+FIREBASE_STORAGE_BUCKET=ebackend-66bde.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=172774872527
+FIREBASE_APP_ID=1:172774872527:web:a1ed1f7ca9c0499aff6eba
+FIREBASE_MEASUREMENT_ID=G-5EDHEHCKQN
+FIREBASE_SERVICE_ACCOUNT_JSON=paste-your-service-account-json-here
 ```
 
 ---
@@ -103,7 +108,7 @@ Change your API base URL from:
 const API_URL = 'http://localhost:4000'
 
 // NEW (Production on Render)
-const API_URL = 'https://nexora-backend.onrender.com'
+
 ```
 
 ---
@@ -116,9 +121,9 @@ const API_URL = 'https://nexora-backend.onrender.com'
 3. Test locally: `npm start`
 
 ### 502 Bad Gateway Error
-- Database connection issue
-- Check DATABASE_URL is correct
-- Verify Supabase is accessible
+- Firebase Admin credential issue
+- Check FIREBASE_SERVICE_ACCOUNT_JSON is valid JSON
+- Verify Firestore is enabled in Firebase
 
 ### CORS Errors
 - Update CORS_ORIGIN in env variables
@@ -137,11 +142,7 @@ const API_URL = 'https://nexora-backend.onrender.com'
 {
   "scripts": {
     "start": "node server.js",           // For production (Render uses this)
-    "dev": "nodemon server.js",          // For local development
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:deploy": "prisma migrate deploy",
-    "seed": "node prisma/seed.js"
+    "dev": "nodemon server.js"           // For local development
   }
 }
 ```

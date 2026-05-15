@@ -12,7 +12,7 @@ npm start
 This command runs `node server.js` which:
 1. ✅ Loads your environment variables from `.env`
 2. ✅ Initializes the Express app
-3. ✅ Connects to Supabase PostgreSQL database
+3. ✅ Initializes Firebase Admin SDK for Firestore
 4. ✅ Starts listening on port 4000
 5. ✅ Outputs: `Backend API running on http://localhost:4000`
 
@@ -57,10 +57,15 @@ In Render Dashboard:
 ```
 PORT=4000
 NODE_ENV=production
-DATABASE_URL=postgresql://user:password@db-host/database
 CORS_ORIGIN=https://your-frontend.onrender.com
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-supabase-key
+FIREBASE_API_KEY=AIzaSyCJ3dtb_nv5zstIVtRgbDbvoJQE7e3cPN4
+FIREBASE_AUTH_DOMAIN=ebackend-66bde.firebaseapp.com
+FIREBASE_PROJECT_ID=ebackend-66bde
+FIREBASE_STORAGE_BUCKET=ebackend-66bde.firebasestorage.app
+FIREBASE_MESSAGING_SENDER_ID=172774872527
+FIREBASE_APP_ID=1:172774872527:web:a1ed1f7ca9c0499aff6eba
+FIREBASE_MEASUREMENT_ID=G-5EDHEHCKQN
+FIREBASE_SERVICE_ACCOUNT_JSON=paste-your-service-account-json-here
 ```
 
 ### Step 5: Deploy
@@ -108,7 +113,7 @@ SUPABASE_KEY=your-supabase-key
 ### ❌ Service Won't Start
 **Error:** `app failed to start`
 - **Fix:** Check `.env` variables are all set
-- **Check:** Database URL is correct
+- **Check:** Firebase service account JSON is valid
 - **Check:** Port is not hardcoded (use env.port)
 
 ### ❌ Service Crashes After Start
@@ -144,8 +149,8 @@ In Render dashboard:
 ## Production Checklist
 
 - [ ] All environment variables set in Render
-- [ ] Database migrations run: `npm run prisma:deploy`
-- [ ] DATABASE_URL points to production Supabase
+- [ ] Firestore is enabled in Firebase
+- [ ] FIREBASE_SERVICE_ACCOUNT_JSON is set in Render
 - [ ] CORS_ORIGIN matches your frontend URL
 - [ ] NODE_ENV=production
 - [ ] Test health endpoint: `GET /api/health`

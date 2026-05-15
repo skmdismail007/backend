@@ -1,6 +1,16 @@
-import { prisma } from '../lib/prisma.js'
+/**
+ * Search Service - Firebase Implementation
+ * Handles searching across products and services
+ */
+
+import { db, isFirestoreConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
 
+/**
+ * Search catalog for products and services
+ * @param {string} query - Search query
+ * @returns {Promise<Object>} { products: [], services: [] }
+ */
 export async function searchCatalog(query) {
   const search = query.trim()
 
@@ -8,43 +18,71 @@ export async function searchCatalog(query) {
     return { products: [], services: [] }
   }
 
-  let products
-  let services
-
-  try {
-    ;[products, services] = await Promise.all([
-      prisma.product.findMany({
-        where: {
-          isActive: true,
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { category: { contains: search, mode: 'insensitive' } },
-            { short: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-        take: 8,
-      }),
-      prisma.service.findMany({
-        where: {
-          isActive: true,
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { category: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } },
-          ],
-        },
-        take: 8,
-      }),
-    ])
-  } catch {
-    const query = search.toLowerCase()
-    products = (await fallbackStore.listProducts({ search })).slice(0, 8)
-    services = (await fallbackStore.listServices())
-      .filter((item) =>
-        [item.name, item.category, item.description].join(' ').toLowerCase().includes(query),
+  if (!isFirestoreConfigured) {
+    const products = (await fallbackStore.listProducts({ search })).slice(0, 8)
+    const services = (await fallbackStore.listServices())
+      .filter(item =>
+        [item.name, item.category, item.description]
+          .join(' ')
+          .toLowerCase()
+          .includes(search.toLowerCase())
       )
       .slice(0, 8)
+    return { products, services }
   }
 
-  return { products, services }
+  try {
+    const searchLower = search.toLowerCase()
+
+    // Search products
+    const productSnapshot = await db
+      .collection('products')
+      .where('isActive', '==', true)
+      .get()
+
+    const products = productSnapshot.docs
+      .filter(doc => {
+        const data = doc.data()
+        return (
+          data.name?.toLowerCase().includes(searchLower) ||
+          data.category?.toLowerCase().includes(searchLower) ||
+          data.short?.toLowerCase().includes(searchLower)
+        )
+      })
+      .slice(0, 8)
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+
+    // Search services
+    const serviceSnapshot = await db
+      .collection('services')
+      .where('isActive', '==', true)
+      .get()
+
+    const services = serviceSnapshot.docs
+      .filter(doc => {
+        const data = doc.data()
+        return (
+          data.name?.toLowerCase().includes(searchLower) ||
+          data.category?.toLowerCase().includes(searchLower) ||
+          data.description?.toLowerCase().includes(searchLower)
+        )
+      })
+      .slice(0, 8)
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+
+    return { products, services }
+  } catch (error) {
+    console.error('Error searching catalog:', error)
+    // Fallback to local store
+    const products = (await fallbackStore.listProducts({ search })).slice(0, 8)
+    const services = (await fallbackStore.listServices())
+      .filter(item =>
+        [item.name, item.category, item.description]
+          .join(' ')
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      )
+      .slice(0, 8)
+    return { products, services }
+  }
 }

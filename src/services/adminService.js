@@ -1,21 +1,33 @@
-import { prisma } from '../lib/prisma.js'
+import { db, isFirestoreConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
 
+function mapDoc(doc) {
+  return { id: doc.id, ...doc.data() }
+}
+
+async function countCollection(collectionName, queryBuilder = (collection) => collection) {
+  const snapshot = await queryBuilder(db.collection(collectionName)).get()
+  return snapshot.size
+}
+
+async function latest(collectionName, limit = 5) {
+  const snapshot = await db.collection(collectionName).orderBy('createdAt', 'desc').limit(limit).get()
+  return snapshot.docs.map(mapDoc)
+}
+
 export async function getDashboardSummary() {
+  if (!isFirestoreConfigured) return fallbackStore.summary()
+
   try {
     const [products, services, reviews, messages, quotes, latestMessages, latestQuotes] =
       await Promise.all([
-        prisma.product.count({ where: { isActive: true } }),
-        prisma.service.count({ where: { isActive: true } }),
-        prisma.review.count(),
-        prisma.contactMessage.count({ where: { status: 'new' } }),
-        prisma.quoteRequest.count({ where: { status: 'new' } }),
-        prisma.contactMessage.findMany({ orderBy: { createdAt: 'desc' }, take: 5 }),
-        prisma.quoteRequest.findMany({
-          include: { items: true },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-        }),
+        countCollection('products', collection => collection.where('isActive', '==', true)),
+        countCollection('services', collection => collection.where('isActive', '==', true)),
+        countCollection('reviews'),
+        countCollection('contactMessages', collection => collection.where('status', '==', 'new')),
+        countCollection('quoteRequests', collection => collection.where('status', '==', 'new')),
+        latest('contactMessages'),
+        latest('quoteRequests'),
       ])
 
     return {
@@ -35,66 +47,89 @@ export async function getDashboardSummary() {
 }
 
 export async function listAllReviews() {
+  if (!isFirestoreConfigured) return fallbackStore.listReviews(false)
+
   try {
-    return await prisma.review.findMany({ orderBy: { createdAt: 'desc' } })
+    const snapshot = await db.collection('reviews').orderBy('createdAt', 'desc').get()
+    return snapshot.docs.map(mapDoc)
   } catch {
     return fallbackStore.listReviews(false)
   }
 }
 
 export async function updateReviewApproval(id, isApproved) {
+  if (!isFirestoreConfigured) return fallbackStore.updateReview(id, isApproved)
+
   try {
-    return await prisma.review.update({
-      where: { id },
-      data: { isApproved },
-    })
+    const update = { isApproved, updatedAt: new Date() }
+    await db.collection('reviews').doc(id).update(update)
+    const doc = await db.collection('reviews').doc(id).get()
+    return mapDoc(doc)
   } catch {
     return fallbackStore.updateReview(id, isApproved)
   }
 }
 
 export async function deleteReview(id) {
+  if (!isFirestoreConfigured) return fallbackStore.deleteReview(id)
+
   try {
-    return await prisma.review.delete({ where: { id } })
+    const docRef = db.collection('reviews').doc(id)
+    const doc = await docRef.get()
+    await docRef.delete()
+    return doc.exists ? mapDoc(doc) : null
   } catch {
     return fallbackStore.deleteReview(id)
   }
 }
 
 export async function updateMessageStatus(id, status) {
+  if (!isFirestoreConfigured) return fallbackStore.updateMessage(id, status)
+
   try {
-    return await prisma.contactMessage.update({
-      where: { id },
-      data: { status },
-    })
+    const update = { status, updatedAt: new Date() }
+    await db.collection('contactMessages').doc(id).update(update)
+    const doc = await db.collection('contactMessages').doc(id).get()
+    return mapDoc(doc)
   } catch {
     return fallbackStore.updateMessage(id, status)
   }
 }
 
 export async function deleteMessage(id) {
+  if (!isFirestoreConfigured) return fallbackStore.deleteMessage(id)
+
   try {
-    return await prisma.contactMessage.delete({ where: { id } })
+    const docRef = db.collection('contactMessages').doc(id)
+    const doc = await docRef.get()
+    await docRef.delete()
+    return doc.exists ? mapDoc(doc) : null
   } catch {
     return fallbackStore.deleteMessage(id)
   }
 }
 
 export async function updateQuoteStatus(id, status) {
+  if (!isFirestoreConfigured) return fallbackStore.updateQuote(id, status)
+
   try {
-    return await prisma.quoteRequest.update({
-      where: { id },
-      data: { status },
-      include: { items: true },
-    })
+    const update = { status, updatedAt: new Date() }
+    await db.collection('quoteRequests').doc(id).update(update)
+    const doc = await db.collection('quoteRequests').doc(id).get()
+    return mapDoc(doc)
   } catch {
     return fallbackStore.updateQuote(id, status)
   }
 }
 
 export async function deleteQuote(id) {
+  if (!isFirestoreConfigured) return fallbackStore.deleteQuote(id)
+
   try {
-    return await prisma.quoteRequest.delete({ where: { id } })
+    const docRef = db.collection('quoteRequests').doc(id)
+    const doc = await docRef.get()
+    await docRef.delete()
+    return doc.exists ? mapDoc(doc) : null
   } catch {
     return fallbackStore.deleteQuote(id)
   }

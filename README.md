@@ -1,6 +1,6 @@
 # Akiwa Backend
 
-Express + Prisma backend for Supabase Postgres.
+Express backend using Firebase Firestore through the Firebase Admin SDK.
 
 ## Setup
 
@@ -10,21 +10,11 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` and replace `YOUR-PASSWORD` with your real Supabase database password.
+For production on Render, add `FIREBASE_SERVICE_ACCOUNT_JSON` from Firebase Console → Project Settings → Service Accounts → Generate new private key.
 
 ## Database
 
-```bash
-npm run prisma:generate
-npm run prisma:deploy
-npm run seed
-```
-
-For local development with migration creation:
-
-```bash
-npm run prisma:migrate
-```
+Firestore collections used by the API: `products`, `services`, `reviews`, `contactMessages`, and `quoteRequests`.
 
 ## Run
 
