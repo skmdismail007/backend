@@ -6,6 +6,19 @@
 import { db, isFirestoreConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
 
+export const DEFAULT_PRODUCT_IMAGE = '/product-images/cctv-dome.svg'
+
+function normalizeProductPayload(data) {
+  return {
+    ...data,
+    badge: data.badge?.trim() || 'New',
+    image: data.image?.trim() || DEFAULT_PRODUCT_IMAGE,
+    specs: Array.isArray(data.specs) ? data.specs : [],
+    includes: Array.isArray(data.includes) ? data.includes : [],
+    isActive: data.isActive ?? true,
+  }
+}
+
 /**
  * List all products with optional filtering and sorting
  * @param {Object} filters - { category, search, sort }
@@ -87,12 +100,12 @@ export async function getProductById(id) {
  * @returns {Promise<Object>} Created product with ID
  */
 export async function createProduct(data) {
-  if (!isFirestoreConfigured) return fallbackStore.saveProduct(data)
+  const normalized = normalizeProductPayload(data)
+  if (!isFirestoreConfigured) return fallbackStore.saveProduct(normalized)
 
   try {
     const productData = {
-      ...data,
-      isActive: data.isActive ?? true,
+      ...normalized,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -105,7 +118,7 @@ export async function createProduct(data) {
     }
   } catch (error) {
     console.error('Error creating product:', error)
-    throw error
+    return fallbackStore.saveProduct(normalized)
   }
 }
 
@@ -116,11 +129,12 @@ export async function createProduct(data) {
  * @returns {Promise<Object>} Updated product
  */
 export async function updateProduct(id, data) {
-  if (!isFirestoreConfigured) return fallbackStore.saveProduct(data, id)
+  const normalized = normalizeProductPayload(data)
+  if (!isFirestoreConfigured) return fallbackStore.saveProduct(normalized, id)
 
   try {
     const updateData = {
-      ...data,
+      ...normalized,
       updatedAt: new Date(),
     }
 
@@ -132,7 +146,7 @@ export async function updateProduct(id, data) {
     }
   } catch (error) {
     console.error('Error updating product:', error)
-    throw error
+    return fallbackStore.saveProduct(normalized, id)
   }
 }
 

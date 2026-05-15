@@ -6,6 +6,20 @@
 import { db, isFirestoreConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
 
+export const DEFAULT_SERVICE_IMAGE =
+  'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80'
+
+function normalizeServicePayload(data) {
+  return {
+    ...data,
+    category: data.category?.trim() || 'Website',
+    timeline: data.timeline?.trim() || 'Custom timeline',
+    image: data.image?.trim() || DEFAULT_SERVICE_IMAGE,
+    deliverables: Array.isArray(data.deliverables) ? data.deliverables : [],
+    isActive: data.isActive ?? true,
+  }
+}
+
 /**
  * List all active services
  * @returns {Promise<Array>} Array of services
@@ -61,12 +75,12 @@ export async function getServiceById(id) {
  * @returns {Promise<Object>} Created service with ID
  */
 export async function createService(data) {
-  if (!isFirestoreConfigured) return fallbackStore.saveService(data)
+  const normalized = normalizeServicePayload(data)
+  if (!isFirestoreConfigured) return fallbackStore.saveService(normalized)
 
   try {
     const serviceData = {
-      ...data,
-      isActive: data.isActive ?? true,
+      ...normalized,
       createdAt: new Date(),
       updatedAt: new Date(),
     }
@@ -79,7 +93,7 @@ export async function createService(data) {
     }
   } catch (error) {
     console.error('Error creating service:', error)
-    throw error
+    return fallbackStore.saveService(normalized)
   }
 }
 
@@ -90,11 +104,12 @@ export async function createService(data) {
  * @returns {Promise<Object>} Updated service
  */
 export async function updateService(id, data) {
-  if (!isFirestoreConfigured) return fallbackStore.saveService(data, id)
+  const normalized = normalizeServicePayload(data)
+  if (!isFirestoreConfigured) return fallbackStore.saveService(normalized, id)
 
   try {
     const updateData = {
-      ...data,
+      ...normalized,
       updatedAt: new Date(),
     }
 
@@ -106,7 +121,7 @@ export async function updateService(id, data) {
     }
   } catch (error) {
     console.error('Error updating service:', error)
-    throw error
+    return fallbackStore.saveService(normalized, id)
   }
 }
 

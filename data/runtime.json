@@ -1,19 +1,19 @@
 {
   "products": [
     {
-      "id": "product-1778834524383-03d56d",
-      "name": "abcd",
+      "id": "product-1778835838121-c4d3ff",
+      "name": "cccc",
       "category": "CCTV Camera",
-      "price": 33,
+      "price": 3,
       "badge": "",
       "image": "",
-      "short": "dsvcdfzv",
-      "details": "fjdbv jbdvljkfs",
+      "short": "dddd",
+      "details": "dd dddd",
       "specs": [],
       "includes": [],
       "isActive": true,
-      "createdAt": "2026-05-15T08:42:04.383Z",
-      "updatedAt": "2026-05-15T08:42:04.383Z"
+      "createdAt": "2026-05-15T09:03:58.121Z",
+      "updatedAt": "2026-05-15T09:03:58.121Z"
     },
     {
       "id": "4mp-dome-camera",
@@ -307,6 +307,51 @@
       "isActive": true,
       "createdAt": "2026-05-15T08:38:57.897Z",
       "updatedAt": "2026-05-15T08:38:57.897Z"
+    },
+    {
+      "id": "product-1778835764093-f5ae3b",
+      "name": "aaaa",
+      "category": "CCTV Camera",
+      "price": 1233,
+      "badge": "",
+      "image": "",
+      "short": "aaa",
+      "details": "aaaaa",
+      "specs": [],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-05-15T09:02:44.093Z",
+      "updatedAt": "2026-05-15T09:02:44.093Z"
+    },
+    {
+      "id": "product-1778835725655-e4e6b1",
+      "name": "haha",
+      "category": "Tar",
+      "price": 12,
+      "badge": "",
+      "image": "",
+      "short": "ass",
+      "details": "sss",
+      "specs": [],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-05-15T09:02:05.655Z",
+      "updatedAt": "2026-05-15T09:02:05.655Z"
+    },
+    {
+      "id": "product-1778834524383-03d56d",
+      "name": "abcd",
+      "category": "CCTV Camera",
+      "price": 33,
+      "badge": "",
+      "image": "",
+      "short": "dsvcdfzv",
+      "details": "fjdbv jbdvljkfs",
+      "specs": [],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-05-15T08:42:04.383Z",
+      "updatedAt": "2026-05-15T08:42:04.383Z"
     },
     {
       "id": "product-1778834434722-e5a193",

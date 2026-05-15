@@ -2,6 +2,9 @@ import { readFile, writeFile } from 'node:fs/promises'
 
 const catalogPath = new URL('../../data/catalog.json', import.meta.url)
 const runtimePath = new URL('../../data/runtime.json', import.meta.url)
+const defaultProductImage = '/product-images/cctv-dome.svg'
+const defaultServiceImage =
+  'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80'
 
 let store
 
@@ -31,8 +34,8 @@ function normalizeProduct(product) {
     name: product.name,
     category: product.category || 'CCTV',
     price: Number(product.price || 0),
-    badge: product.badge || '',
-    image: product.image || '',
+    badge: product.badge || 'New',
+    image: product.image || defaultProductImage,
     short: product.short || product.description || product.details || product.name,
     details: product.details || product.description || product.short || product.name,
     specs: product.specs || [],
@@ -52,7 +55,7 @@ function normalizeService(service) {
     timeline: service.timeline || '',
     description: service.description || service.summary || service.text || service.name,
     summary: service.summary || service.description || service.name,
-    image: Array.isArray(service.images) ? service.images[0] : service.image || '',
+    image: Array.isArray(service.images) ? service.images[0] : service.image || defaultServiceImage,
     deliverables: service.deliverables || service.features || [],
     isActive: service.isActive ?? true,
     createdAt: service.createdAt || now(),
