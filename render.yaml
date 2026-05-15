@@ -1,0 +1,32 @@
+# Render Deployment Configuration
+# Save as: render.yaml in root of backend folder
+# This helps automate deployment settings
+
+services:
+  - type: web
+    name: nexora-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nexora-postgres
+          property: connectionString
+      - key: CORS_ORIGIN
+        value: https://your-frontend.onrender.com
+      - key: SUPABASE_URL
+        scope: all
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: all
+
+databases:
+  - name: nexora-postgres
+    databaseName: nexora
+    user: postgres
+    region: singapore

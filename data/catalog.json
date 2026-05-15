@@ -1,0 +1,144 @@
+{
+  "products": [
+    {
+      "id": "4mp-dome-camera",
+      "name": "4MP Smart Dome CCTV Camera",
+      "category": "CCTV Camera",
+      "price": 89,
+      "stock": 42,
+      "badge": "Best Seller",
+      "image": "/product-images/cctv-dome.svg",
+      "short": "Indoor/outdoor dome camera with night vision, motion alerts, and clear 4MP recording.",
+      "details": "A compact CCTV dome camera for homes, offices, shops, and warehouses. It supports sharp day/night footage, vandal-resistant installation, and mobile monitoring through supported DVR/NVR systems.",
+      "description": "Indoor and outdoor dome CCTV camera with clear 4MP footage, night vision, motion-ready alerts, and a compact body for homes, shops, offices, and warehouses.",
+      "specs": ["4MP HD resolution", "IR night vision", "Weather resistant body", "Motion detection ready"],
+      "includes": ["Camera unit", "Mounting screws", "Installation guide", "1 year service support"]
+    },
+    {
+      "id": "8ch-nvr-kit",
+      "name": "8 Channel NVR Security Kit",
+      "category": "Recorder Kit",
+      "price": 249,
+      "stock": 18,
+      "badge": "Complete Kit",
+      "image": "/product-images/nvr-kit.svg",
+      "short": "Reliable NVR kit for multi-camera security recording with remote viewing support.",
+      "details": "A strong base system for CCTV installations that need central recording, multiple camera connections, and easy playback. Ideal for retail, buildings, and business premises.",
+      "description": "Multi-camera recording kit for IP CCTV projects with playback, remote viewing support, HDMI output, and reliable storage expansion.",
+      "specs": ["8 channel support", "Remote viewing ready", "HDMI and VGA output", "H.265 video compression"],
+      "includes": ["NVR device", "Power adapter", "Mouse", "Setup support"]
+    },
+    {
+      "id": "poe-switch",
+      "name": "8 Port PoE Network Switch",
+      "category": "CCTV Accessory",
+      "price": 79,
+      "stock": 31,
+      "badge": "Accessory",
+      "image": "/product-images/poe-switch.svg",
+      "short": "Power and connect IP cameras with one stable network switch.",
+      "details": "A PoE switch built for CCTV camera networks. It reduces cabling complexity by sending power and data through a single Ethernet cable for supported IP cameras.",
+      "description": "PoE switch for powering and connecting compatible IP cameras through one Ethernet cable.",
+      "specs": ["8 PoE ports", "Plug and play setup", "Stable CCTV networking", "Metal body"],
+      "includes": ["PoE switch", "Power cable", "Quick setup notes"]
+    },
+    {
+      "id": "cctv-cable-roll",
+      "name": "Premium CCTV Cable Roll",
+      "category": "CCTV Accessory",
+      "price": 39,
+      "stock": 64,
+      "badge": "Installation",
+      "image": "/product-images/cctv-cable.svg",
+      "short": "Durable cable roll for clean and stable CCTV camera installations.",
+      "details": "High-quality CCTV cable for reliable video and power transmission across residential and commercial camera setups.",
+      "description": "Durable cable roll for reliable residential and commercial CCTV installations.",
+      "specs": ["Strong outer jacket", "Low signal loss", "Easy routing", "Suitable for camera installs"],
+      "includes": ["Cable roll", "Connector guidance", "Installer support"]
+    },
+    {
+      "id": "surveillance-hard-drive",
+      "name": "Surveillance Hard Drive 2TB",
+      "category": "Storage",
+      "price": 99,
+      "stock": 22,
+      "badge": "Storage",
+      "image": "/product-images/hard-drive.svg",
+      "short": "Continuous recording storage built for security systems.",
+      "details": "A CCTV-friendly hard drive for 24/7 recording workloads. Use it with DVR or NVR systems to store and replay footage with confidence.",
+      "description": "2TB CCTV storage drive for continuous DVR and NVR recording.",
+      "specs": ["2TB capacity", "Designed for 24/7 use", "DVR/NVR compatible", "Quiet operation"],
+      "includes": ["Hard drive", "Compatibility check", "Setup help"]
+    },
+    {
+      "id": "camera-power-supply",
+      "name": "12V CCTV Power Supply",
+      "category": "Power Accessory",
+      "price": 19,
+      "stock": 75,
+      "badge": "Power",
+      "image": "/product-images/power-supply.svg",
+      "short": "Stable power adapter for compatible CCTV cameras.",
+      "details": "A dependable power supply for camera installations where clean and consistent voltage is important for reliable operation.",
+      "description": "Stable 12V adapter for compatible CCTV camera installations.",
+      "specs": ["12V output", "Compact design", "Camera compatible", "Protection-ready casing"],
+      "includes": ["Power supply", "Connector advice", "Basic support"]
+    }
+  ],
+  "services": [
+    {
+      "id": "starter-website",
+      "name": "Starter Business Website",
+      "price": 299,
+      "timeline": "5-7 days",
+      "image": "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80",
+      "summary": "A clean modern website for small businesses, freelancers, and new brands.",
+      "description": "Perfect when you need a professional online presence fast. This package includes a polished homepage, service sections, contact area, mobile responsiveness, and basic launch setup.",
+      "deliverables": ["Responsive homepage", "About and service sections", "Contact form UI", "Basic SEO structure"]
+    },
+    {
+      "id": "ecommerce-website",
+      "name": "E-commerce Website",
+      "price": 899,
+      "timeline": "12-18 days",
+      "image": "https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1000&q=80",
+      "summary": "A product-selling website with catalogue, product details, cart-ready sections, and buy CTAs.",
+      "description": "Built for businesses that sell products online. The design includes product listing pages, product detail screens, offer sections, trust blocks, checkout-ready calls to action, and conversion-focused content.",
+      "deliverables": ["Product catalogue", "Product detail pages", "Buy sections", "Customer trust blocks"]
+    },
+    {
+      "id": "custom-react-app",
+      "name": "Custom React Web App",
+      "price": 1499,
+      "timeline": "20-30 days",
+      "image": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1000&q=80",
+      "summary": "Interactive dashboards, portals, booking tools, and business web applications.",
+      "description": "For advanced projects that need dynamic interfaces, custom flows, reusable components, and frontend architecture beyond a standard website.",
+      "deliverables": ["React component system", "Dynamic pages", "Forms and state flows", "Performance-focused build"]
+    },
+    {
+      "id": "website-redesign",
+      "name": "Website Redesign",
+      "price": 599,
+      "timeline": "8-12 days",
+      "image": "https://images.unsplash.com/photo-1522542550221-31fd19575a2d?auto=format&fit=crop&w=1000&q=80",
+      "summary": "Refresh your old website with modern visuals, stronger messaging, and better structure.",
+      "description": "A redesign service for outdated sites that need a sharper first impression, clearer service pages, and responsive layouts that work on all devices.",
+      "deliverables": ["Modern UI direction", "Responsive rebuild", "Improved sections", "Launch refinement"]
+    }
+  ],
+  "freelancing": [
+    {
+      "id": "landing-page-design",
+      "name": "Landing Page Design",
+      "rate": "From $150",
+      "description": "High-converting one-page layout for offers, ad campaigns, and business launches."
+    },
+    {
+      "id": "frontend-development",
+      "name": "Frontend Development",
+      "rate": "From $25/hr",
+      "description": "React components, responsive UI, animations, bug fixes, and frontend improvements."
+    }
+  ]
+}
