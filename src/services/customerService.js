@@ -1,5 +1,14 @@
-import { db, isFirestoreConfigured } from '../lib/firebase.js'
+import { db, isFirestoreConfigured, isRealtimeDatabaseConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
+import {
+  createRealtime,
+  deleteRealtime,
+  getRealtime,
+  listRealtime,
+  listRealtimeWhere,
+  sortNewest,
+  updateRealtime,
+} from '../lib/realtimeDatabase.js'
 
 export const DEFAULT_REVIEW_IMAGE = 'https://cdn-icons-png.magnific.com/512/7486/7486744.png'
 
@@ -14,6 +23,11 @@ function withoutPassword(user) {
 }
 
 export async function listReviews() {
+  if (isRealtimeDatabaseConfigured) {
+    const reviews = await listRealtime('reviews')
+    return sortNewest(reviews.filter((item) => item.isApproved))
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.listReviews(true)
 
   try {
@@ -35,6 +49,14 @@ export async function createReview(data) {
     image: data.image?.trim() || DEFAULT_REVIEW_IMAGE,
   }
 
+  if (isRealtimeDatabaseConfigured) {
+    return createRealtime('reviews', {
+      image: DEFAULT_REVIEW_IMAGE,
+      isApproved: true,
+      ...reviewPayload,
+    })
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.createReview(reviewPayload)
 
   try {
@@ -53,6 +75,13 @@ export async function createReview(data) {
 }
 
 export async function createContactMessage(data) {
+  if (isRealtimeDatabaseConfigured) {
+    return createRealtime('contactMessages', {
+      status: 'new',
+      ...data,
+    })
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.createMessage(data)
 
   try {
@@ -70,6 +99,8 @@ export async function createContactMessage(data) {
 }
 
 export async function listContactMessages() {
+  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtime('contactMessages'))
+
   if (!isFirestoreConfigured) return fallbackStore.listMessages()
 
   try {
@@ -81,6 +112,17 @@ export async function listContactMessages() {
 }
 
 export async function createQuoteRequest(data) {
+  if (isRealtimeDatabaseConfigured) {
+    return createRealtime('quoteRequests', {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      note: data.note,
+      items: data.items,
+      status: 'new',
+    })
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.createQuote(data)
 
   try {
@@ -102,6 +144,8 @@ export async function createQuoteRequest(data) {
 }
 
 export async function listQuoteRequests() {
+  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtime('quoteRequests'))
+
   if (!isFirestoreConfigured) return fallbackStore.listQuotes()
 
   try {
@@ -113,6 +157,19 @@ export async function listQuoteRequests() {
 }
 
 export async function registerUser(data) {
+  if (isRealtimeDatabaseConfigured) {
+    const users = await listRealtime('users')
+    const existing = users.find((item) => item.email?.toLowerCase() === data.email.toLowerCase())
+    if (existing) throw Object.assign(new Error('Email already registered'), { statusCode: 409 })
+
+    const user = await createRealtime('users', {
+      name: data.name,
+      email: data.email.toLowerCase(),
+      password: data.password,
+    })
+    return withoutPassword(user)
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.registerUser(data)
 
   const existing = await db.collection('users').where('email', '==', data.email.toLowerCase()).limit(1).get()
@@ -130,6 +187,15 @@ export async function registerUser(data) {
 }
 
 export async function loginUser(email, password) {
+  if (isRealtimeDatabaseConfigured) {
+    const users = await listRealtime('users')
+    const user = users.find(
+      (item) => item.email?.toLowerCase() === email.toLowerCase() && item.password === password,
+    )
+    if (!user) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 })
+    return withoutPassword(user)
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.loginUser(email, password)
 
   const snapshot = await db
@@ -146,6 +212,8 @@ export async function loginUser(email, password) {
 }
 
 export async function updateUser(id, updates) {
+  if (isRealtimeDatabaseConfigured) return withoutPassword(await updateRealtime('users', id, updates))
+
   if (!isFirestoreConfigured) return fallbackStore.updateUser(id, updates)
 
   const updateData = { ...updates, updatedAt: new Date() }
@@ -155,6 +223,8 @@ export async function updateUser(id, updates) {
 }
 
 export async function listUserAddresses(userId) {
+  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtimeWhere('addresses', 'userId', userId))
+
   if (!isFirestoreConfigured) return fallbackStore.listAddresses(userId)
 
   const snapshot = await db.collection('addresses').where('userId', '==', userId).get()
@@ -162,6 +232,21 @@ export async function listUserAddresses(userId) {
 }
 
 export async function createUserAddress(userId, data) {
+  if (isRealtimeDatabaseConfigured) {
+    const existing = await listUserAddresses(userId)
+    const address = {
+      ...data,
+      userId,
+      isDefault: data.isDefault ?? existing.length === 0,
+    }
+
+    if (address.isDefault) {
+      await Promise.all(existing.map((item) => updateRealtime('addresses', item.id, { isDefault: false })))
+    }
+
+    return createRealtime('addresses', address)
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.createAddress(userId, data)
 
   const existing = await listUserAddresses(userId)
@@ -184,6 +269,14 @@ export async function createUserAddress(userId, data) {
 }
 
 export async function setUserDefaultAddress(userId, addressId) {
+  if (isRealtimeDatabaseConfigured) {
+    const addresses = await listUserAddresses(userId)
+    await Promise.all(
+      addresses.map((item) => updateRealtime('addresses', item.id, { isDefault: item.id === addressId })),
+    )
+    return getRealtime('addresses', addressId)
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.setDefaultAddress(userId, addressId)
 
   const addresses = await listUserAddresses(userId)
@@ -196,6 +289,14 @@ export async function setUserDefaultAddress(userId, addressId) {
 }
 
 export async function deleteUserAddress(userId, addressId) {
+  if (isRealtimeDatabaseConfigured) {
+    const address = await getRealtime('addresses', addressId)
+    if (!address || address.userId !== userId) {
+      throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    }
+    return deleteRealtime('addresses', addressId)
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.deleteAddress(userId, addressId)
 
   const docRef = db.collection('addresses').doc(addressId)
@@ -205,6 +306,8 @@ export async function deleteUserAddress(userId, addressId) {
 }
 
 export async function listUserOrders(userId) {
+  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtimeWhere('orders', 'userId', userId))
+
   if (!isFirestoreConfigured) return fallbackStore.listOrders(userId)
 
   const snapshot = await db.collection('orders').where('userId', '==', userId).get()
@@ -212,6 +315,15 @@ export async function listUserOrders(userId) {
 }
 
 export async function createUserOrder(userId, data) {
+  if (isRealtimeDatabaseConfigured) {
+    return createRealtime('orders', {
+      ...data,
+      userId,
+      status: data.status || 'pending',
+      trackingNumber: data.trackingNumber || `AKIWA${Date.now().toString().slice(-8).toUpperCase()}`,
+    })
+  }
+
   if (!isFirestoreConfigured) return fallbackStore.createOrder(userId, data)
 
   const order = {

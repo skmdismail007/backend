@@ -1,7 +1,10 @@
 import {
   deleteMessage,
+  deleteAddressByAdmin,
+  deleteOrderByAdmin,
   deleteQuote,
   deleteReview,
+  deleteUserByAdmin,
   getDashboardSummary,
   getUserDetails,
   listAddresses,
@@ -9,9 +12,12 @@ import {
   listOrders,
   listUsers,
   updateMessageStatus,
+  updateAddressByAdmin,
+  updateOrderByAdmin,
   updateOrderStatus,
   updateQuoteStatus,
   updateReviewApproval,
+  updateUserByAdmin,
 } from '../services/adminService.js'
 import { listContactMessages, listQuoteRequests } from '../services/customerService.js'
 
@@ -75,8 +81,24 @@ export async function getAdminUserDetails(request, response) {
   response.json(await getUserDetails(request.validated.params.id))
 }
 
+export async function patchAdminUser(request, response) {
+  response.json(await updateUserByAdmin(request.validated.params.id, request.validated.body))
+}
+
+export async function removeAdminUser(request, response) {
+  response.json(await deleteUserByAdmin(request.validated.params.id))
+}
+
 export async function getAdminAddresses(_request, response) {
   response.json(await listAddresses())
+}
+
+export async function patchAdminAddress(request, response) {
+  response.json(await updateAddressByAdmin(request.validated.params.id, request.validated.body))
+}
+
+export async function removeAdminAddress(request, response) {
+  response.json(await deleteAddressByAdmin(request.validated.params.id))
 }
 
 export async function getAdminOrders(_request, response) {
@@ -89,4 +111,12 @@ export async function patchAdminOrder(request, response) {
     request.validated.body.status,
   )
   response.json(order)
+}
+
+export async function patchAdminOrderDetails(request, response) {
+  response.json(await updateOrderByAdmin(request.validated.params.id, request.validated.body))
+}
+
+export async function removeAdminOrder(request, response) {
+  response.json(await deleteOrderByAdmin(request.validated.params.id))
 }

@@ -338,6 +338,17 @@ export const fallbackStore = {
     return withoutPassword(user)
   },
 
+  async deleteUser(id) {
+    const data = await getStore()
+    const user = data.users.find((item) => item.id === id)
+    if (!user) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    data.users = data.users.filter((item) => item.id !== id)
+    data.addresses = data.addresses.filter((item) => item.userId !== id)
+    data.orders = data.orders.filter((item) => item.userId !== id)
+    await saveStore()
+    return withoutPassword(user)
+  },
+
   async listAddresses(userId) {
     const data = await getStore()
     return data.addresses.filter((item) => !userId || item.userId === userId)
@@ -383,6 +394,24 @@ export const fallbackStore = {
     return address
   },
 
+  async updateAddress(id, updates) {
+    const data = await getStore()
+    const address = data.addresses.find((item) => item.id === id)
+    if (!address) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    Object.assign(address, updates, { updatedAt: now() })
+    await saveStore()
+    return address
+  },
+
+  async deleteAddressById(id) {
+    const data = await getStore()
+    const address = data.addresses.find((item) => item.id === id)
+    if (!address) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    data.addresses = data.addresses.filter((item) => item.id !== id)
+    await saveStore()
+    return address
+  },
+
   async listOrders(userId) {
     const data = await getStore()
     return data.orders.filter((item) => !userId || item.userId === userId)
@@ -410,6 +439,24 @@ export const fallbackStore = {
     if (!order) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
     order.status = status
     order.updatedAt = now()
+    await saveStore()
+    return order
+  },
+
+  async updateOrder(id, updates) {
+    const data = await getStore()
+    const order = data.orders.find((item) => item.id === id)
+    if (!order) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    Object.assign(order, updates, { updatedAt: now() })
+    await saveStore()
+    return order
+  },
+
+  async deleteOrder(id) {
+    const data = await getStore()
+    const order = data.orders.find((item) => item.id === id)
+    if (!order) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+    data.orders = data.orders.filter((item) => item.id !== id)
     await saveStore()
     return order
   },

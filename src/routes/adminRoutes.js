@@ -8,21 +8,30 @@ import {
   getAdminOrders,
   getAdminUserDetails,
   getAdminUsers,
+  patchAdminAddress,
   patchAdminMessage,
   patchAdminOrder,
+  patchAdminOrderDetails,
   patchAdminQuote,
   patchAdminReview,
+  patchAdminUser,
+  removeAdminAddress,
   removeAdminMessage,
+  removeAdminOrder,
   removeAdminQuote,
   removeAdminReview,
+  removeAdminUser,
 } from '../controllers/adminController.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { validate } from '../middleware/validate.js'
 import {
   adminIdSchema,
+  adminAddressUpdateSchema,
+  adminOrderUpdateSchema,
   adminOrderStatusSchema,
   adminReviewUpdateSchema,
   adminStatusSchema,
+  adminUserUpdateSchema,
 } from '../validators/adminSchemas.js'
 
 const router = Router()
@@ -39,8 +48,14 @@ router.patch('/quotes/:id', validate(adminStatusSchema), asyncHandler(patchAdmin
 router.delete('/quotes/:id', validate(adminIdSchema), asyncHandler(removeAdminQuote))
 router.get('/users', asyncHandler(getAdminUsers))
 router.get('/users/:id/details', validate(adminIdSchema), asyncHandler(getAdminUserDetails))
+router.patch('/users/:id', validate(adminUserUpdateSchema), asyncHandler(patchAdminUser))
+router.delete('/users/:id', validate(adminIdSchema), asyncHandler(removeAdminUser))
 router.get('/addresses', asyncHandler(getAdminAddresses))
+router.patch('/addresses/:id', validate(adminAddressUpdateSchema), asyncHandler(patchAdminAddress))
+router.delete('/addresses/:id', validate(adminIdSchema), asyncHandler(removeAdminAddress))
 router.get('/orders', asyncHandler(getAdminOrders))
 router.patch('/orders/:id', validate(adminOrderStatusSchema), asyncHandler(patchAdminOrder))
+router.patch('/orders/:id/details', validate(adminOrderUpdateSchema), asyncHandler(patchAdminOrderDetails))
+router.delete('/orders/:id', validate(adminIdSchema), asyncHandler(removeAdminOrder))
 
 export default router

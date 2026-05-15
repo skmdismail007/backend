@@ -10,12 +10,16 @@ import { env } from '../config/env.js'
 
 const serviceAccountKeyPath = resolve(process.cwd(), env.firebase.serviceAccountKeyPath)
 
-export const isFirestoreConfigured = Boolean(
+const hasAdminCredential = Boolean(
   env.firebase.serviceAccountJson ||
     (env.firebase.clientEmail && env.firebase.privateKey) ||
     existsSync(serviceAccountKeyPath) ||
     process.env.GOOGLE_APPLICATION_CREDENTIALS,
 )
+
+export const isFirestoreConfigured = hasAdminCredential
+
+export const isRealtimeDatabaseConfigured = Boolean(env.firebase.databaseURL && hasAdminCredential)
 
 function normalizePrivateKey(privateKey) {
   return privateKey?.replace(/\\n/g, '\n')
@@ -46,6 +50,7 @@ try {
     credential: getCredential(),
     projectId: env.firebase.projectId,
     storageBucket: env.firebase.storageBucket,
+    databaseURL: env.firebase.databaseURL,
   })
 
   admin.app()
@@ -64,6 +69,9 @@ try {
 
 // Get Firestore database instance
 export const db = admin.firestore()
+
+// Get Realtime Database instance
+export const realtimeDb = admin.database()
 
 // Get Authentication instance
 export const auth = admin.auth()
