@@ -18,7 +18,7 @@ export function createApp() {
         return
       }
 
-      callback(new Error('Not allowed by CORS'))
+      callback(Object.assign(new Error(`CORS origin not allowed: ${origin}`), { statusCode: 403 }))
     },
     credentials: true,
   }))

@@ -31,7 +31,17 @@ export const env = {
   nodeEnv: parsed.data.NODE_ENV,
   port: parsed.data.PORT,
   corsOrigin: parsed.data.CORS_ORIGIN,
-  corsOrigins: parsed.data.CORS_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean),
+  corsOrigins: [
+    ...new Set([
+      ...parsed.data.CORS_ORIGIN.split(',').map(origin => origin.trim()).filter(Boolean),
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:5174',
+      'http://127.0.0.1:5174',
+      'http://localhost:4173',
+      'http://127.0.0.1:4173',
+    ]),
+  ],
   firebase: {
     apiKey: parsed.data.FIREBASE_API_KEY,
     authDomain: parsed.data.FIREBASE_AUTH_DOMAIN,
