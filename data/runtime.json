@@ -7,6 +7,7 @@
       "price": 89,
       "badge": "Best Seller",
       "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "Indoor/outdoor dome camera with night vision, motion alerts, and clear 4MP recording.",
       "details": "A compact CCTV dome camera for homes, offices, shops, and warehouses. It supports sharp day/night footage, vandal-resistant installation, and mobile monitoring through supported DVR/NVR systems.",
       "specs": [
@@ -32,6 +33,7 @@
       "price": 249,
       "badge": "Complete Kit",
       "image": "/product-images/nvr-kit.svg",
+      "images": [],
       "short": "Reliable NVR kit for multi-camera security recording with remote viewing support.",
       "details": "A strong base system for CCTV installations that need central recording, multiple camera connections, and easy playback. Ideal for retail, buildings, and business premises.",
       "specs": [
@@ -57,6 +59,7 @@
       "price": 79,
       "badge": "Accessory",
       "image": "/product-images/poe-switch.svg",
+      "images": [],
       "short": "Power and connect IP cameras with one stable network switch.",
       "details": "A PoE switch built for CCTV camera networks. It reduces cabling complexity by sending power and data through a single Ethernet cable for supported IP cameras.",
       "specs": [
@@ -81,6 +84,7 @@
       "price": 39,
       "badge": "Installation",
       "image": "/product-images/cctv-cable.svg",
+      "images": [],
       "short": "Durable cable roll for clean and stable CCTV camera installations.",
       "details": "High-quality CCTV cable for reliable video and power transmission across residential and commercial camera setups.",
       "specs": [
@@ -105,6 +109,7 @@
       "price": 99,
       "badge": "Storage",
       "image": "/product-images/hard-drive.svg",
+      "images": [],
       "short": "Continuous recording storage built for security systems.",
       "details": "A CCTV-friendly hard drive for 24/7 recording workloads. Use it with DVR or NVR systems to store and replay footage with confidence.",
       "specs": [
@@ -129,6 +134,7 @@
       "price": 19,
       "badge": "Power",
       "image": "/product-images/power-supply.svg",
+      "images": [],
       "short": "Stable power adapter for compatible CCTV cameras.",
       "details": "A dependable power supply for camera installations where clean and consistent voltage is important for reliable operation.",
       "specs": [
@@ -153,6 +159,7 @@
       "price": 119,
       "badge": "Outdoor",
       "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "Weather-ready bullet camera with sharp 5MP video and long-range night vision.",
       "details": "A reliable outdoor camera for gates, parking areas, storefronts, and boundary coverage. The focused bullet design helps monitor fixed zones with clear detail.",
       "specs": [
@@ -178,6 +185,7 @@
       "price": 399,
       "badge": "Pro",
       "image": "/product-images/nvr-kit.svg",
+      "images": [],
       "short": "High-capacity recorder for larger CCTV installations and multi-zone monitoring.",
       "details": "Built for offices, schools, warehouses, and larger buildings that need more camera inputs, stable recording, and quick playback from one control point.",
       "specs": [
@@ -203,6 +211,7 @@
       "price": 169,
       "badge": "High Capacity",
       "image": "/product-images/hard-drive.svg",
+      "images": [],
       "short": "Large 4TB CCTV storage drive for longer recording history.",
       "details": "Designed for continuous security footage workloads where longer retention and dependable DVR/NVR compatibility matter.",
       "specs": [
@@ -227,6 +236,7 @@
       "price": 149,
       "badge": "Network",
       "image": "/product-images/poe-switch.svg",
+      "images": [],
       "short": "Power a larger IP camera network with a stable 16 port PoE switch.",
       "details": "A practical network switch for expanding camera coverage while keeping power and data cabling simple across compatible IP CCTV setups.",
       "specs": [
@@ -251,6 +261,7 @@
       "price": 69,
       "badge": "Smart",
       "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "Compact Wi-Fi camera for rooms, counters, and small office monitoring.",
       "details": "A simple smart camera option for areas where quick wireless monitoring is preferred. Useful for homes, reception counters, and small shops.",
       "specs": [
@@ -276,6 +287,7 @@
       "price": 59,
       "badge": "Toolkit",
       "image": "/product-images/cctv-cable.svg",
+      "images": [],
       "short": "Useful accessories for cleaner camera mounting and cable finishing.",
       "details": "A support kit for CCTV installation work with common accessories that help complete neat, reliable camera setups.",
       "specs": [

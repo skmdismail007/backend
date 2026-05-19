@@ -479,6 +479,23 @@ export const fallbackStore = {
     return order
   },
 
+  async cancelOrder(id, cancellationReason = '') {
+    const data = await getStore()
+    const order = data.orders.find((item) => item.id === id)
+    if (!order) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+
+    Object.assign(order, {
+      status: 'cancelled',
+      cancellationReason,
+      cancelledBy: 'user',
+      cancelledAt: now(),
+      updatedAt: now(),
+    })
+
+    await saveStore()
+    return order
+  },
+
   async deleteOrder(id) {
     const data = await getStore()
     const order = data.orders.find((item) => item.id === id)

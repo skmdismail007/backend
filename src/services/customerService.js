@@ -339,12 +339,14 @@ export async function createUserOrder(userId, data) {
 }
 
 export async function cancelUserOrder(orderId, cancellationReason) {
+  const cancelledAt = new Date().toISOString()
+
   if (isRealtimeDatabaseConfigured) {
     return updateRealtime('orders', orderId, {
       status: 'cancelled',
       cancellationReason: cancellationReason || '',
       cancelledBy: 'user',
-      cancelledAt: new Date(),
+      cancelledAt,
     })
   }
 
@@ -354,7 +356,7 @@ export async function cancelUserOrder(orderId, cancellationReason) {
     status: 'cancelled',
     cancellationReason: cancellationReason || '',
     cancelledBy: 'user',
-    cancelledAt: new Date(),
+    cancelledAt,
     updatedAt: new Date(),
   }
   await db.collection('orders').doc(orderId).update(update)
