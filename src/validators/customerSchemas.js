@@ -113,3 +113,13 @@ export const orderCreateSchema = z.object({
     trackingNumber: z.string().optional(),
   }),
 })
+
+export const orderCancelSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+    orderId: z.string().min(1),
+  }),
+  body: z.object({
+    cancellationReason: z.string().max(500).optional(),
+  }),
+})

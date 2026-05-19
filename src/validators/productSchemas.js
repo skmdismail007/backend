@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const imageReferenceSchema = z.string().trim().min(1)
+
 export const productListSchema = z.object({
   query: z.object({
     category: z.string().optional(),
@@ -22,6 +24,7 @@ export const productCreateSchema = z.object({
     price: z.coerce.number().nonnegative(),
     badge: z.string().optional(),
     image: z.string().optional(),
+    images: z.array(imageReferenceSchema).max(10).default([]),
     short: z.string().min(2),
     details: z.string().min(2),
     specs: z.array(z.string()).default([]),
@@ -35,4 +38,28 @@ export const productUpdateSchema = productCreateSchema.extend({
     id: z.string().min(1),
   }),
   body: productCreateSchema.shape.body.partial(),
+})
+
+export const productImageUploadSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+})
+
+export const productImageDeleteSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+  query: z.object({
+    imageUrl: imageReferenceSchema,
+  }),
+})
+
+export const productImageReorderSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+  body: z.object({
+    imageUrls: z.array(imageReferenceSchema).min(1).max(10),
+  }),
 })

@@ -7,6 +7,7 @@ import {
   getUserOrders,
   patchUser,
   patchUserDefaultAddress,
+  patchUserCancelOrder,
   postContactMessage,
   postQuoteRequest,
   postReview,
@@ -23,6 +24,7 @@ import {
   addressCreateSchema,
   addressIdSchema,
   orderCreateSchema,
+  orderCancelSchema,
   quoteCreateSchema,
   reviewCreateSchema,
   userIdSchema,
@@ -48,5 +50,6 @@ router.patch('/users/:id/addresses/:addressId/default', validate(addressIdSchema
 router.delete('/users/:id/addresses/:addressId', validate(addressIdSchema), asyncHandler(removeUserAddress))
 router.get('/users/:id/orders', validate(userIdSchema), asyncHandler(getUserOrders))
 router.post('/users/:id/orders', validate(orderCreateSchema), asyncHandler(postUserOrder))
+router.patch('/users/:id/orders/:orderId/cancel', validate(orderCancelSchema), asyncHandler(patchUserCancelOrder))
 
 export default router

@@ -337,3 +337,27 @@ export async function createUserOrder(userId, data) {
   const docRef = await db.collection('orders').add(order)
   return { id: docRef.id, ...order }
 }
+
+export async function cancelUserOrder(orderId, cancellationReason) {
+  if (isRealtimeDatabaseConfigured) {
+    return updateRealtime('orders', orderId, {
+      status: 'cancelled',
+      cancellationReason: cancellationReason || '',
+      cancelledBy: 'user',
+      cancelledAt: new Date(),
+    })
+  }
+
+  if (!isFirestoreConfigured) return fallbackStore.cancelOrder(orderId, cancellationReason)
+
+  const update = {
+    status: 'cancelled',
+    cancellationReason: cancellationReason || '',
+    cancelledBy: 'user',
+    cancelledAt: new Date(),
+    updatedAt: new Date(),
+  }
+  await db.collection('orders').doc(orderId).update(update)
+  const doc = await db.collection('orders').doc(orderId).get()
+  return mapDoc(doc)
+}

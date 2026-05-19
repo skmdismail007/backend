@@ -5,6 +5,7 @@ const runtimePath = new URL('../../data/runtime.json', import.meta.url)
 const defaultProductImage = '/product-images/cctv-dome.svg'
 const defaultServiceImage =
   'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80'
+const maxProductImages = 10
 
 let store
 
@@ -14,6 +15,18 @@ function now() {
 
 function createId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
+}
+
+function normalizeImages(images) {
+  if (!Array.isArray(images)) return []
+
+  return [
+    ...new Set(
+      images
+        .map((image) => (typeof image === 'string' ? image.trim() : ''))
+        .filter(Boolean),
+    ),
+  ].slice(0, maxProductImages)
 }
 
 async function readJson(path, fallback) {
@@ -29,13 +42,16 @@ async function saveStore() {
 }
 
 function normalizeProduct(product) {
+  const images = normalizeImages(product.images)
+
   return {
     id: product.id || createId('product'),
     name: product.name,
     category: product.category || 'CCTV',
     price: Number(product.price || 0),
     badge: product.badge || 'New',
-    image: product.image || defaultProductImage,
+    image: product.image || images[0] || defaultProductImage,
+    images,
     short: product.short || product.description || product.details || product.name,
     details: product.details || product.description || product.short || product.name,
     specs: product.specs || [],
@@ -142,8 +158,16 @@ export const fallbackStore = {
 
   async saveProduct(product, id) {
     const data = await getStore()
-    const record = normalizeProduct({ ...product, id: id || product.id, updatedAt: now() })
-    const index = data.products.findIndex((item) => item.id === record.id)
+    const targetId = id || product.id
+    const index = targetId ? data.products.findIndex((item) => item.id === targetId) : -1
+    const existing = index >= 0 ? data.products[index] : {}
+    const record = normalizeProduct({
+      ...existing,
+      ...product,
+      id: targetId || product.id,
+      createdAt: existing.createdAt || product.createdAt,
+      updatedAt: now(),
+    })
     if (index >= 0) data.products[index] = { ...data.products[index], ...record }
     else data.products.unshift(record)
     await saveStore()

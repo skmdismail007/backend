@@ -69,5 +69,7 @@ export const adminOrderUpdateSchema = z.object({
     trackingNumber: z.string().min(1).optional(),
     email: z.string().email().optional(),
     total: z.coerce.number().nonnegative().optional(),
+    cancellationReason: z.string().max(500).optional(),
+    cancelledBy: z.enum(['user', 'admin']).optional(),
   }),
 })

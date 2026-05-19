@@ -2,15 +2,19 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { env } from './config/env.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import apiRoutes from './routes/index.js'
 
+const uploadRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../uploads')
+
 export function createApp() {
   const app = express()
 
-  app.use(helmet())
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
   app.use(cors({
     origin(origin, callback) {
       if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin)) {
@@ -29,6 +33,7 @@ export function createApp() {
     response.json({ service: 'akiwa-backend', status: 'ok' })
   })
 
+  app.use('/uploads', express.static(uploadRoot, { maxAge: '30d' }))
   app.use('/api', apiRoutes)
   app.use(notFoundHandler)
   app.use(errorHandler)

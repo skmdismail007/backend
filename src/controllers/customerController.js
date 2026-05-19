@@ -14,6 +14,7 @@ import {
   registerUser,
   setUserDefaultAddress,
   updateUser,
+  cancelUserOrder,
 } from '../services/customerService.js'
 
 export async function getReviews(_request, response) {
@@ -87,4 +88,12 @@ export async function getUserOrders(request, response) {
 export async function postUserOrder(request, response) {
   const order = await createUserOrder(request.validated.params.id, request.validated.body)
   response.status(201).json(order)
+}
+
+export async function patchUserCancelOrder(request, response) {
+  const order = await cancelUserOrder(
+    request.validated.params.orderId,
+    request.validated.body.cancellationReason,
+  )
+  response.json(order)
 }

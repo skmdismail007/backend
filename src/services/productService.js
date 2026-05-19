@@ -7,16 +7,55 @@ import { db, isFirestoreConfigured } from '../lib/firebase.js'
 import { fallbackStore } from '../lib/fallbackStore.js'
 
 export const DEFAULT_PRODUCT_IMAGE = '/product-images/cctv-dome.svg'
+const MAX_PRODUCT_IMAGES = 10
 
-function normalizeProductPayload(data) {
-  return {
+function normalizeImageList(images) {
+  if (!Array.isArray(images)) return []
+
+  return [
+    ...new Set(
+      images
+        .map((image) => (typeof image === 'string' ? image.trim() : ''))
+        .filter(Boolean),
+    ),
+  ].slice(0, MAX_PRODUCT_IMAGES)
+}
+
+function normalizeProductPayload(data, { partial = false } = {}) {
+  const normalized = {
     ...data,
-    badge: data.badge?.trim() || 'New',
-    image: data.image?.trim() || DEFAULT_PRODUCT_IMAGE,
-    specs: Array.isArray(data.specs) ? data.specs : [],
-    includes: Array.isArray(data.includes) ? data.includes : [],
-    isActive: data.isActive ?? true,
   }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'badge')) {
+    normalized.badge = data.badge?.trim() || (partial ? '' : 'New')
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'specs')) {
+    normalized.specs = Array.isArray(data.specs) ? data.specs : []
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'includes')) {
+    normalized.includes = Array.isArray(data.includes) ? data.includes : []
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'images')) {
+    normalized.images = normalizeImageList(data.images)
+  }
+
+  if (
+    !partial ||
+    Object.prototype.hasOwnProperty.call(data, 'image') ||
+    Object.prototype.hasOwnProperty.call(data, 'images')
+  ) {
+    const image = typeof data.image === 'string' ? data.image.trim() : ''
+    normalized.image = image || normalized.images?.[0] || (partial ? '' : DEFAULT_PRODUCT_IMAGE)
+  }
+
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'isActive')) {
+    normalized.isActive = data.isActive ?? true
+  }
+
+  return normalized
 }
 
 /**
@@ -129,7 +168,7 @@ export async function createProduct(data) {
  * @returns {Promise<Object>} Updated product
  */
 export async function updateProduct(id, data) {
-  const normalized = normalizeProductPayload(data)
+  const normalized = normalizeProductPayload(data, { partial: true })
   if (!isFirestoreConfigured) return fallbackStore.saveProduct(normalized, id)
 
   try {
