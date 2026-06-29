@@ -1,12 +1,12 @@
 # Firebase Backend Notes
 
-The backend now uses Firebase Firestore through the Firebase Admin SDK.
+The backend now uses Firebase Realtime Database and Firebase Storage through the Firebase Admin SDK.
 
 ## Live API
 
 `https://backend-3mp3.onrender.com/api`
 
-## Collections
+## Realtime Database Paths
 
 - `products`
 - `services`

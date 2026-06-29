@@ -6,8 +6,8 @@ import {
   updateService,
 } from '../services/serviceService.js'
 
-export async function getServices(_request, response) {
-  const services = await listServices()
+export async function getServices(request, response) {
+  const services = await listServices(request.validated.query)
   response.json(services)
 }
 

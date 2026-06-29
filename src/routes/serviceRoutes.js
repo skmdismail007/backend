@@ -11,12 +11,13 @@ import { validate } from '../middleware/validate.js'
 import {
   serviceCreateSchema,
   serviceIdSchema,
+  serviceListSchema,
   serviceUpdateSchema,
 } from '../validators/serviceSchemas.js'
 
 const router = Router()
 
-router.get('/', asyncHandler(getServices))
+router.get('/', validate(serviceListSchema), asyncHandler(getServices))
 router.post('/', validate(serviceCreateSchema), asyncHandler(postService))
 router.get('/:id', validate(serviceIdSchema), asyncHandler(getService))
 router.patch('/:id', validate(serviceUpdateSchema), asyncHandler(patchService))

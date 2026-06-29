@@ -20,9 +20,63 @@ import {
   updateUserByAdmin,
 } from '../services/adminService.js'
 import { listContactMessages, listQuoteRequests } from '../services/customerService.js'
+import { uploadSiteImage } from '../services/imageService.js'
+import { getSiteSettings, updateSiteSettings } from '../services/siteSettingsService.js'
+
+const MAX_SITE_HERO_IMAGES = 5
+
+function normalizeHeroImages(settings = {}) {
+  if (!Array.isArray(settings.heroImages)) return []
+
+  return [
+    ...new Set(
+      settings.heroImages
+        .map((image) => (typeof image === 'string' ? image.trim() : ''))
+        .filter(Boolean),
+    ),
+  ].slice(0, MAX_SITE_HERO_IMAGES)
+}
 
 export async function getAdminSummary(_request, response) {
   response.json(await getDashboardSummary())
+}
+
+export async function getAdminSiteSettings(_request, response) {
+  response.json(await getSiteSettings())
+}
+
+export async function patchAdminSiteSettings(request, response) {
+  response.json(await updateSiteSettings(request.validated.body))
+}
+
+export async function postAdminSiteImages(request, response) {
+  const files = request.files || []
+
+  if (!files.length) {
+    return response.status(400).json({ message: 'No files uploaded' })
+  }
+
+  const currentSettings = await getSiteSettings()
+  const currentImages = normalizeHeroImages(currentSettings)
+
+  if (currentImages.length + files.length > MAX_SITE_HERO_IMAGES) {
+    return response.status(400).json({
+      message: `Cannot exceed ${MAX_SITE_HERO_IMAGES} homepage images. Current: ${currentImages.length}, trying to add: ${files.length}`,
+    })
+  }
+
+  const uploadedUrls = await Promise.all(files.map((file) => uploadSiteImage(file, 'site')))
+  const heroImages = [...currentImages, ...uploadedUrls].slice(0, MAX_SITE_HERO_IMAGES)
+  const settings = await updateSiteSettings({
+    heroImages,
+    heroImage: heroImages[0] || currentSettings.heroImage,
+  })
+
+  response.status(201).json({
+    message: `${uploadedUrls.length} homepage image(s) uploaded successfully`,
+    images: uploadedUrls,
+    settings,
+  })
 }
 
 export async function getAdminReviews(_request, response) {

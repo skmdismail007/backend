@@ -1,6 +1,6 @@
 # Akiwa Backend
 
-Express backend using Firebase Firestore through the Firebase Admin SDK.
+Express backend using Firebase Realtime Database and Firebase Storage through the Firebase Admin SDK.
 
 ## Setup
 
@@ -10,11 +10,20 @@ npm install
 cp .env.example .env
 ```
 
+Then open `backend/.env` and add Firebase Admin credentials:
+- `FIREBASE_SERVICE_ACCOUNT_JSON` (preferred), or
+- `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`, or
+- set `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` to a local service account JSON file.
+
+Set `FIREBASE_DATABASE_URL` to your Firebase Realtime Database URL and `FIREBASE_STORAGE_BUCKET` to the Firebase Storage bucket name.
+
 For production on Render, add `FIREBASE_SERVICE_ACCOUNT_JSON` from Firebase Console → Project Settings → Service Accounts → Generate new private key.
 
 ## Database
 
-Firestore collections used by the API: `products`, `services`, `reviews`, `contactMessages`, and `quoteRequests`.
+Realtime Database paths used by the API include `products`, `services`, `reviews`, `contactMessages`, `quoteRequests`, `users`, `addresses`, `orders`, and `siteSettings/home`.
+
+Uploaded images are stored in Firebase Storage. The API stores only Firebase download URLs in Realtime Database.
 
 ## Run
 

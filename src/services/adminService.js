@@ -1,17 +1,14 @@
-import { db, isFirestoreConfigured, isRealtimeDatabaseConfigured } from '../lib/firebase.js'
-import { fallbackStore } from '../lib/fallbackStore.js'
 import {
-  deleteRealtime,
-  getRealtime,
-  listRealtime,
-  listRealtimeWhere,
+  collectionRef,
+  countDocuments,
+  deleteDocument,
+  deleteQuerySnapshot,
+  getDocument,
+  mapDoc,
   sortNewest,
-  updateRealtime,
-} from '../lib/realtimeDatabase.js'
-
-function mapDoc(doc) {
-  return { id: doc.id, ...doc.data() }
-}
+  updateDocument,
+} from './realtimeDataService.js'
+import { deleteReviewWithFile } from './customerService.js'
 
 function withoutPassword(user) {
   const safeUser = { ...user }
@@ -19,380 +16,181 @@ function withoutPassword(user) {
   return safeUser
 }
 
-async function countCollection(collectionName, queryBuilder = (collection) => collection) {
-  const snapshot = await queryBuilder(db.collection(collectionName)).get()
-  return snapshot.size
-}
-
 async function latest(collectionName, limit = 5) {
-  const snapshot = await db.collection(collectionName).orderBy('createdAt', 'desc').limit(limit).get()
-  return snapshot.docs.map(mapDoc)
+  const snapshot = await collectionRef(collectionName).limit(limit).get()
+  return sortNewest(snapshot.docs.map(mapDoc)).slice(0, limit)
 }
 
 async function listCollection(collectionName) {
-  const snapshot = await db.collection(collectionName).get()
-  return snapshot.docs.map(mapDoc)
+  const snapshot = await collectionRef(collectionName).get()
+  return sortNewest(snapshot.docs.map(mapDoc))
 }
 
 export async function getDashboardSummary() {
-  if (isRealtimeDatabaseConfigured) {
-    const [products, services, reviews, messages, quotes, users, orders] = await Promise.all([
-      fallbackStore.listProducts(),
-      fallbackStore.listServices(),
-      listRealtime('reviews'),
-      listRealtime('contactMessages'),
-      listRealtime('quoteRequests'),
-      listRealtime('users'),
-      listRealtime('orders'),
-    ])
+  const [
+    products,
+    services,
+    reviews,
+    newMessages,
+    newQuotes,
+    users,
+    orders,
+    categories,
+    banners,
+    blogPosts,
+    freelanceRequests,
+    latestMessages,
+    latestQuotes,
+  ] = await Promise.all([
+    countDocuments('products', [['isActive', '==', true]]),
+    countDocuments('services', [['isActive', '==', true]]),
+    countDocuments('reviews'),
+    countDocuments('contactMessages', [['status', '==', 'new']]),
+    countDocuments('quoteRequests', [['status', '==', 'new']]),
+    countDocuments('users'),
+    countDocuments('orders'),
+    countDocuments('categories'),
+    countDocuments('banners'),
+    countDocuments('blogPosts'),
+    countDocuments('freelanceRequests', [['status', '==', 'new']]),
+    latest('contactMessages'),
+    latest('quoteRequests'),
+  ])
 
-    return {
-      totals: {
-        products: products.length,
-        services: services.length,
-        reviews: reviews.length,
-        newMessages: messages.filter((item) => item.status === 'new').length,
-        newQuotes: quotes.filter((item) => item.status === 'new').length,
-        users: users.length,
-        orders: orders.length,
-      },
-      latestMessages: sortNewest(messages).slice(0, 5),
-      latestQuotes: sortNewest(quotes).slice(0, 5),
-    }
-  }
-
-  if (!isFirestoreConfigured) return fallbackStore.summary()
-
-  try {
-    const [products, services, reviews, messages, quotes, latestMessages, latestQuotes] =
-      await Promise.all([
-        countCollection('products', collection => collection.where('isActive', '==', true)),
-        countCollection('services', collection => collection.where('isActive', '==', true)),
-        countCollection('reviews'),
-        countCollection('contactMessages', collection => collection.where('status', '==', 'new')),
-        countCollection('quoteRequests', collection => collection.where('status', '==', 'new')),
-        latest('contactMessages'),
-        latest('quoteRequests'),
-      ])
-
-    return {
-      totals: {
-        products,
-        services,
-        reviews,
-        newMessages: messages,
-        newQuotes: quotes,
-        users: await countCollection('users'),
-        orders: await countCollection('orders'),
-      },
-      latestMessages,
-      latestQuotes,
-    }
-  } catch {
-    return fallbackStore.summary()
+  return {
+    totals: {
+      products,
+      services,
+      reviews,
+      newMessages,
+      newQuotes,
+      users,
+      orders,
+      categories,
+      banners,
+      blogPosts,
+      freelanceRequests,
+    },
+    latestMessages,
+    latestQuotes,
   }
 }
 
 export async function listUsers() {
-  if (isRealtimeDatabaseConfigured) return sortNewest((await listRealtime('users')).map(withoutPassword))
-
-  if (!isFirestoreConfigured) return fallbackStore.listUsers()
-  const users = await listCollection('users')
-  return users.map(withoutPassword)
+  return (await listCollection('users')).map(withoutPassword)
 }
 
 export async function getUserDetails(id) {
-  if (isRealtimeDatabaseConfigured) {
-    const userRecord = await getRealtime('users', id)
-    if (!userRecord) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+  const [user, addressSnapshot, orderSnapshot] = await Promise.all([
+    getDocument('users', id),
+    collectionRef('addresses').where('userId', '==', id).get(),
+    collectionRef('orders').where('userId', '==', id).get(),
+  ])
+  const addresses = sortNewest(addressSnapshot.docs.map(mapDoc))
+  const orders = sortNewest(orderSnapshot.docs.map(mapDoc))
+  const safeUser = withoutPassword(user)
+  const phone =
+    safeUser.phone ||
+    addresses.find((address) => address.phone)?.phone ||
+    orders.find((order) => order.phone)?.phone ||
+    orders.find((order) => order.address?.phone)?.address?.phone ||
+    ''
 
-    const user = withoutPassword(userRecord)
-    const addresses = sortNewest(await listRealtimeWhere('addresses', 'userId', id))
-    const orders = sortNewest(await listRealtimeWhere('orders', 'userId', id))
-    const phone =
-      user.phone ||
-      addresses.find((address) => address.phone)?.phone ||
-      orders.find((order) => order.phone)?.phone ||
-      orders.find((order) => order.address?.phone)?.address?.phone ||
-      ''
-
-    return {
-      user,
-      addresses,
-      orders,
-      contact: {
-        name: user.name,
-        email: user.email || orders.find((order) => order.email)?.email || '',
-        phone,
-      },
-    }
-  }
-
-  if (!isFirestoreConfigured) return fallbackStore.getUserDetails(id)
-
-  try {
-    const [userDoc, addressSnapshot, orderSnapshot] = await Promise.all([
-      db.collection('users').doc(id).get(),
-      db.collection('addresses').where('userId', '==', id).get(),
-      db.collection('orders').where('userId', '==', id).get(),
-    ])
-
-    if (!userDoc.exists) {
-      throw Object.assign(new Error('Record not found'), { statusCode: 404 })
-    }
-
-    const user = withoutPassword(mapDoc(userDoc))
-    const addresses = addressSnapshot.docs.map(mapDoc)
-    const orders = orderSnapshot.docs.map(mapDoc)
-    const phone =
-      user.phone ||
-      addresses.find((address) => address.phone)?.phone ||
-      orders.find((order) => order.phone)?.phone ||
-      orders.find((order) => order.address?.phone)?.address?.phone ||
-      ''
-
-    return {
-      user,
-      addresses,
-      orders,
-      contact: {
-        name: user.name,
-        email: user.email || orders.find((order) => order.email)?.email || '',
-        phone,
-      },
-    }
-  } catch (error) {
-    if (error.statusCode === 404) throw error
-    return fallbackStore.getUserDetails(id)
+  return {
+    user: safeUser,
+    addresses,
+    orders,
+    contact: {
+      name: safeUser.name,
+      email: safeUser.email || orders.find((order) => order.email)?.email || '',
+      phone,
+    },
   }
 }
 
-export async function listAddresses() {
-  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtime('addresses'))
-
-  if (!isFirestoreConfigured) return fallbackStore.listAddresses()
+export function listAddresses() {
   return listCollection('addresses')
 }
 
-export async function listOrders() {
-  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtime('orders'))
-
-  if (!isFirestoreConfigured) return fallbackStore.listOrders()
+export function listOrders() {
   return listCollection('orders')
 }
 
-export async function updateOrderStatus(id, status) {
-  if (isRealtimeDatabaseConfigured) return updateRealtime('orders', id, { status })
-
-  if (!isFirestoreConfigured) return fallbackStore.updateOrderStatus(id, status)
-
-  const update = { status, updatedAt: new Date() }
-  await db.collection('orders').doc(id).update(update)
-  const doc = await db.collection('orders').doc(id).get()
-  return mapDoc(doc)
+export function listAllReviews() {
+  return listCollection('reviews')
 }
 
-export async function listAllReviews() {
-  if (isRealtimeDatabaseConfigured) return sortNewest(await listRealtime('reviews'))
-
-  if (!isFirestoreConfigured) return fallbackStore.listReviews(false)
-
-  try {
-    const snapshot = await db.collection('reviews').orderBy('createdAt', 'desc').get()
-    return snapshot.docs.map(mapDoc)
-  } catch {
-    return fallbackStore.listReviews(false)
-  }
+export function updateReviewApproval(id, isApproved) {
+  return updateDocument('reviews', id, { isApproved })
 }
 
-export async function updateReviewApproval(id, isApproved) {
-  if (isRealtimeDatabaseConfigured) return updateRealtime('reviews', id, { isApproved })
-
-  if (!isFirestoreConfigured) return fallbackStore.updateReview(id, isApproved)
-
-  try {
-    const update = { isApproved, updatedAt: new Date() }
-    await db.collection('reviews').doc(id).update(update)
-    const doc = await db.collection('reviews').doc(id).get()
-    return mapDoc(doc)
-  } catch {
-    return fallbackStore.updateReview(id, isApproved)
-  }
+export function deleteReview(id) {
+  return deleteReviewWithFile(id)
 }
 
-export async function deleteReview(id) {
-  if (isRealtimeDatabaseConfigured) return deleteRealtime('reviews', id)
-
-  if (!isFirestoreConfigured) return fallbackStore.deleteReview(id)
-
-  try {
-    const docRef = db.collection('reviews').doc(id)
-    const doc = await docRef.get()
-    await docRef.delete()
-    return doc.exists ? mapDoc(doc) : null
-  } catch {
-    return fallbackStore.deleteReview(id)
-  }
+export function updateMessageStatus(id, status) {
+  return updateDocument('contactMessages', id, { status })
 }
 
-export async function updateMessageStatus(id, status) {
-  if (isRealtimeDatabaseConfigured) return updateRealtime('contactMessages', id, { status })
-
-  if (!isFirestoreConfigured) return fallbackStore.updateMessage(id, status)
-
-  try {
-    const update = { status, updatedAt: new Date() }
-    await db.collection('contactMessages').doc(id).update(update)
-    const doc = await db.collection('contactMessages').doc(id).get()
-    return mapDoc(doc)
-  } catch {
-    return fallbackStore.updateMessage(id, status)
-  }
+export function deleteMessage(id) {
+  return deleteDocument('contactMessages', id)
 }
 
-export async function deleteMessage(id) {
-  if (isRealtimeDatabaseConfigured) return deleteRealtime('contactMessages', id)
-
-  if (!isFirestoreConfigured) return fallbackStore.deleteMessage(id)
-
-  try {
-    const docRef = db.collection('contactMessages').doc(id)
-    const doc = await docRef.get()
-    await docRef.delete()
-    return doc.exists ? mapDoc(doc) : null
-  } catch {
-    return fallbackStore.deleteMessage(id)
-  }
+export function updateQuoteStatus(id, status) {
+  return updateDocument('quoteRequests', id, { status })
 }
 
-export async function updateQuoteStatus(id, status) {
-  if (isRealtimeDatabaseConfigured) return updateRealtime('quoteRequests', id, { status })
-
-  if (!isFirestoreConfigured) return fallbackStore.updateQuote(id, status)
-
-  try {
-    const update = { status, updatedAt: new Date() }
-    await db.collection('quoteRequests').doc(id).update(update)
-    const doc = await db.collection('quoteRequests').doc(id).get()
-    return mapDoc(doc)
-  } catch {
-    return fallbackStore.updateQuote(id, status)
-  }
-}
-
-export async function deleteQuote(id) {
-  if (isRealtimeDatabaseConfigured) return deleteRealtime('quoteRequests', id)
-
-  if (!isFirestoreConfigured) return fallbackStore.deleteQuote(id)
-
-  try {
-    const docRef = db.collection('quoteRequests').doc(id)
-    const doc = await docRef.get()
-    await docRef.delete()
-    return doc.exists ? mapDoc(doc) : null
-  } catch {
-    return fallbackStore.deleteQuote(id)
-  }
+export function deleteQuote(id) {
+  return deleteDocument('quoteRequests', id)
 }
 
 export async function updateUserByAdmin(id, updates) {
-  if (isRealtimeDatabaseConfigured) return withoutPassword(await updateRealtime('users', id, updates))
-  if (!isFirestoreConfigured) return fallbackStore.updateUser(id, updates)
-
-  await db.collection('users').doc(id).update({ ...updates, updatedAt: new Date() })
-  const doc = await db.collection('users').doc(id).get()
-  return withoutPassword(mapDoc(doc))
+  return withoutPassword(await updateDocument('users', id, updates))
 }
 
 export async function deleteUserByAdmin(id) {
-  if (isRealtimeDatabaseConfigured) {
-    const user = withoutPassword(await deleteRealtime('users', id))
-    const [addresses, orders] = await Promise.all([
-      listRealtimeWhere('addresses', 'userId', id),
-      listRealtimeWhere('orders', 'userId', id),
-    ])
-    await Promise.all([
-      ...addresses.map((address) => deleteRealtime('addresses', address.id)),
-      ...orders.map((order) => deleteRealtime('orders', order.id)),
-    ])
-    return user
-  }
-
-  if (!isFirestoreConfigured) return fallbackStore.deleteUser(id)
-
-  const userDoc = await db.collection('users').doc(id).get()
-  if (!userDoc.exists) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
+  const user = await getDocument('users', id)
   const [addresses, orders] = await Promise.all([
-    db.collection('addresses').where('userId', '==', id).get(),
-    db.collection('orders').where('userId', '==', id).get(),
+    collectionRef('addresses').where('userId', '==', id).get(),
+    collectionRef('orders').where('userId', '==', id).get(),
   ])
+
   await Promise.all([
-    ...addresses.docs.map((doc) => doc.ref.delete()),
-    ...orders.docs.map((doc) => doc.ref.delete()),
-    db.collection('users').doc(id).delete(),
+    deleteQuerySnapshot(addresses),
+    deleteQuerySnapshot(orders),
+    deleteDocument('users', id),
   ])
-  return withoutPassword(mapDoc(userDoc))
+
+  return withoutPassword(user)
 }
 
 export async function updateAddressByAdmin(id, updates) {
-  if (isRealtimeDatabaseConfigured) {
-    const current = await getRealtime('addresses', id)
-    if (!current) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
-    if (updates.isDefault) {
-      const addresses = await listRealtimeWhere('addresses', 'userId', current.userId)
-      await Promise.all(
-        addresses
-          .filter((address) => address.id !== id)
-          .map((address) => updateRealtime('addresses', address.id, { isDefault: false })),
-      )
-    }
-    return updateRealtime('addresses', id, updates)
-  }
-  if (!isFirestoreConfigured) return fallbackStore.updateAddress(id, updates)
+  const current = await getDocument('addresses', id)
 
-  const currentDoc = await db.collection('addresses').doc(id).get()
-  if (!currentDoc.exists) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
-  const current = mapDoc(currentDoc)
   if (updates.isDefault) {
-    const addresses = await db.collection('addresses').where('userId', '==', current.userId).get()
+    const addresses = await collectionRef('addresses').where('userId', '==', current.userId).get()
     await Promise.all(
       addresses.docs
         .filter((doc) => doc.id !== id)
-        .map((doc) => doc.ref.update({ isDefault: false, updatedAt: new Date() })),
+        .map((doc) => updateDocument('addresses', doc.id, { isDefault: false })),
     )
   }
-  await db.collection('addresses').doc(id).update({ ...updates, updatedAt: new Date() })
-  const doc = await db.collection('addresses').doc(id).get()
-  return mapDoc(doc)
+
+  return updateDocument('addresses', id, updates)
 }
 
-export async function deleteAddressByAdmin(id) {
-  if (isRealtimeDatabaseConfigured) return deleteRealtime('addresses', id)
-  if (!isFirestoreConfigured) return fallbackStore.deleteAddressById(id)
-
-  const docRef = db.collection('addresses').doc(id)
-  const doc = await docRef.get()
-  if (!doc.exists) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
-  await docRef.delete()
-  return mapDoc(doc)
+export function deleteAddressByAdmin(id) {
+  return deleteDocument('addresses', id)
 }
 
-export async function updateOrderByAdmin(id, updates) {
-  if (isRealtimeDatabaseConfigured) return updateRealtime('orders', id, updates)
-  if (!isFirestoreConfigured) return fallbackStore.updateOrder(id, updates)
-
-  await db.collection('orders').doc(id).update({ ...updates, updatedAt: new Date() })
-  const doc = await db.collection('orders').doc(id).get()
-  return mapDoc(doc)
+export function updateOrderStatus(id, status) {
+  return updateDocument('orders', id, { status })
 }
 
-export async function deleteOrderByAdmin(id) {
-  if (isRealtimeDatabaseConfigured) return deleteRealtime('orders', id)
-  if (!isFirestoreConfigured) return fallbackStore.deleteOrder(id)
+export function updateOrderByAdmin(id, updates) {
+  return updateDocument('orders', id, updates)
+}
 
-  const docRef = db.collection('orders').doc(id)
-  const doc = await docRef.get()
-  if (!doc.exists) throw Object.assign(new Error('Record not found'), { statusCode: 404 })
-  await docRef.delete()
-  return mapDoc(doc)
+export function deleteOrderByAdmin(id) {
+  return deleteDocument('orders', id)
 }

@@ -9,7 +9,7 @@ import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import apiRoutes from './routes/index.js'
 
-const uploadRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../uploads')
+// Local `uploads` folder removed when using Firebase Storage only
 
 export function createApp() {
   const app = express()
@@ -33,7 +33,6 @@ export function createApp() {
     response.json({ service: 'akiwa-backend', status: 'ok' })
   })
 
-  app.use('/uploads', express.static(uploadRoot, { maxAge: '30d' }))
   app.use('/api', apiRoutes)
   app.use(notFoundHandler)
   app.use(errorHandler)

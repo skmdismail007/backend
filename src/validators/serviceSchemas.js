@@ -1,5 +1,19 @@
 import { z } from 'zod'
 
+const queryBooleanSchema = z.preprocess(
+  (value) => {
+    if (value === undefined) return undefined
+    return value === true || value === 'true'
+  },
+  z.boolean().optional(),
+)
+
+export const serviceListSchema = z.object({
+  query: z.object({
+    includeInactive: queryBooleanSchema,
+  }),
+})
+
 export const serviceIdSchema = z.object({
   params: z.object({
     id: z.string().min(1),

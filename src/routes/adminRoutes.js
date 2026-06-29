@@ -3,6 +3,7 @@ import {
   getAdminMessages,
   getAdminQuotes,
   getAdminReviews,
+  getAdminSiteSettings,
   getAdminSummary,
   getAdminAddresses,
   getAdminOrders,
@@ -14,7 +15,9 @@ import {
   patchAdminOrderDetails,
   patchAdminQuote,
   patchAdminReview,
+  patchAdminSiteSettings,
   patchAdminUser,
+  postAdminSiteImages,
   removeAdminAddress,
   removeAdminMessage,
   removeAdminOrder,
@@ -23,6 +26,7 @@ import {
   removeAdminUser,
 } from '../controllers/adminController.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
+import { handleUploadError, uploadSiteImages, validateSiteImageCount } from '../middleware/upload.js'
 import { validate } from '../middleware/validate.js'
 import {
   adminIdSchema,
@@ -30,6 +34,7 @@ import {
   adminOrderUpdateSchema,
   adminOrderStatusSchema,
   adminReviewUpdateSchema,
+  adminSiteSettingsSchema,
   adminStatusSchema,
   adminUserUpdateSchema,
 } from '../validators/adminSchemas.js'
@@ -37,6 +42,15 @@ import {
 const router = Router()
 
 router.get('/summary', asyncHandler(getAdminSummary))
+router.get('/site-settings', asyncHandler(getAdminSiteSettings))
+router.patch('/site-settings', validate(adminSiteSettingsSchema), asyncHandler(patchAdminSiteSettings))
+router.post(
+  '/site-settings/images',
+  uploadSiteImages.array('images', 5),
+  validateSiteImageCount,
+  asyncHandler(postAdminSiteImages),
+  handleUploadError,
+)
 router.get('/reviews', asyncHandler(getAdminReviews))
 router.patch('/reviews/:id', validate(adminReviewUpdateSchema), asyncHandler(patchAdminReview))
 router.delete('/reviews/:id', validate(adminIdSchema), asyncHandler(removeAdminReview))

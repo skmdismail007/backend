@@ -2,7 +2,7 @@ import {
   uploadProductImage,
   deleteProductImage,
 } from '../services/imageService.js'
-import { DEFAULT_PRODUCT_IMAGE, getProductById, updateProduct } from '../services/productService.js'
+import { getProductById, updateProduct } from '../services/productService.js'
 
 /**
  * Upload images to a product
@@ -32,16 +32,11 @@ export async function postProductImages(request, response) {
     }
 
     // Upload all files to Firebase Storage
-    const uploadedUrls = await Promise.all(
-      files.map((file) => uploadProductImage(file.buffer, file.originalname, productId)),
-    )
+    const uploadedUrls = await Promise.all(files.map((file) => uploadProductImage(file, productId)))
 
     // Update product with new images
     const updatedImages = [...currentImages, ...uploadedUrls]
-    const primaryImage =
-      currentImages[0] ||
-      (product.image && product.image !== DEFAULT_PRODUCT_IMAGE ? product.image : '') ||
-      uploadedUrls[0]
+    const primaryImage = product.image || currentImages[0] || uploadedUrls[0] || ''
     const updatedProduct = await updateProduct(productId, {
       images: updatedImages,
       image: primaryImage,

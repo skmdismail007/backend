@@ -1,12 +1,20 @@
 import { z } from 'zod'
 
 const imageReferenceSchema = z.string().trim().min(1)
+const queryBooleanSchema = z.preprocess(
+  (value) => {
+    if (value === undefined) return undefined
+    return value === true || value === 'true'
+  },
+  z.boolean().optional(),
+)
 
 export const productListSchema = z.object({
   query: z.object({
     category: z.string().optional(),
     search: z.string().optional(),
     sort: z.enum(['featured', 'price-low', 'price-high']).optional(),
+    includeInactive: queryBooleanSchema,
   }),
 })
 

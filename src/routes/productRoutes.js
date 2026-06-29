@@ -13,7 +13,7 @@ import {
 } from '../controllers/imageController.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
 import { validate } from '../middleware/validate.js'
-import { uploadProductImages, validateImageCount, handleMulterError } from '../middleware/imageUpload.js'
+import { uploadProductImages, validateImageCount, handleUploadError } from '../middleware/upload.js'
 import {
   productCreateSchema,
   productIdSchema,
@@ -39,7 +39,7 @@ router.post(
   validateImageCount,
   validate(productImageUploadSchema),
   asyncHandler(postProductImages),
-  handleMulterError,
+  handleUploadError,
 )
 router.delete(
   '/:id/images',

@@ -1,146 +1,80 @@
-/**
- * Service Service - Firebase Implementation
- * Handles all service-related database operations
- */
+import {
+  collectionRef,
+  createDocument,
+  getDocument,
+  mapDoc,
+  updateDocument,
+  deleteDocument,
+  sortNewest,
+} from './realtimeDataService.js'
+import { deleteImagesByUrls } from './imageService.js'
 
-import { db, isFirestoreConfigured } from '../lib/firebase.js'
-import { fallbackStore } from '../lib/fallbackStore.js'
-
-export const DEFAULT_SERVICE_IMAGE =
-  'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1000&q=80'
-
-function normalizeServicePayload(data) {
-  return {
-    ...data,
-    category: data.category?.trim() || 'Website',
-    timeline: data.timeline?.trim() || 'Custom timeline',
-    image: data.image?.trim() || DEFAULT_SERVICE_IMAGE,
-    deliverables: Array.isArray(data.deliverables) ? data.deliverables : [],
-    isActive: data.isActive ?? true,
-  }
+function normalizeStringList(values) {
+  if (!Array.isArray(values)) return []
+  return values.map((value) => String(value || '').trim()).filter(Boolean)
 }
 
-/**
- * List all active services
- * @returns {Promise<Array>} Array of services
- */
-export async function listServices() {
-  if (!isFirestoreConfigured) return fallbackStore.listServices()
+function normalizeServicePayload(data, { partial = false } = {}) {
+  const normalized = { ...data }
 
-  try {
-    const snapshot = await db
-      .collection('services')
-      .where('isActive', '==', true)
-      .orderBy('createdAt', 'desc')
-      .get()
-
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }))
-  } catch (error) {
-    console.error('Error listing services:', error)
-    return fallbackStore.listServices()
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'name')) normalized.name = data.name?.trim()
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'category')) {
+    normalized.category = data.category?.trim() || ''
   }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'price')) normalized.price = Number(data.price || 0)
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'timeline')) {
+    normalized.timeline = data.timeline?.trim() || ''
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'description')) {
+    normalized.description = data.description?.trim()
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'summary')) {
+    normalized.summary = data.summary?.trim() || data.description?.trim() || ''
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'image')) {
+    normalized.image = data.image?.trim() || ''
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'deliverables')) {
+    normalized.deliverables = normalizeStringList(data.deliverables)
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'isActive')) {
+    normalized.isActive = data.isActive ?? true
+  }
+
+  return normalized
 }
 
-/**
- * Get a single service by ID
- * @param {string} id - Service document ID
- * @returns {Promise<Object|null>} Service object or null
- */
-export async function getServiceById(id) {
-  if (!isFirestoreConfigured) return fallbackStore.getService(id)
+export async function listServices(filters = {}) {
+  const includeInactive = filters.includeInactive === true || filters.includeInactive === 'true'
+  let query = includeInactive
+    ? collectionRef('services')
+    : collectionRef('services').where('isActive', '==', true)
 
-  try {
-    const doc = await db.collection('services').doc(id).get()
+  if (filters.category) query = query.where('category', '==', filters.category)
 
-    if (!doc.exists) {
-      return fallbackStore.getService(id)
-    }
-
-    return {
-      id: doc.id,
-      ...doc.data(),
-    }
-  } catch (error) {
-    console.error('Error getting service:', error)
-    return fallbackStore.getService(id)
-  }
+  const snapshot = await query.get()
+  return sortNewest(snapshot.docs.map(mapDoc))
 }
 
-/**
- * Create a new service
- * @param {Object} data - Service data
- * @returns {Promise<Object>} Created service with ID
- */
+export function getServiceById(id) {
+  return getDocument('services', id)
+}
+
 export async function createService(data) {
   const normalized = normalizeServicePayload(data)
-  if (!isFirestoreConfigured) return fallbackStore.saveService(normalized)
-
-  try {
-    const serviceData = {
-      ...normalized,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    const docRef = await db.collection('services').add(serviceData)
-
-    return {
-      id: docRef.id,
-      ...serviceData,
-    }
-  } catch (error) {
-    console.error('Error creating service:', error)
-    return fallbackStore.saveService(normalized)
-  }
+  return createDocument('services', normalized, data.id)
 }
 
-/**
- * Update an existing service
- * @param {string} id - Service document ID
- * @param {Object} data - Updated service data
- * @returns {Promise<Object>} Updated service
- */
 export async function updateService(id, data) {
-  const normalized = normalizeServicePayload(data)
-  if (!isFirestoreConfigured) return fallbackStore.saveService(normalized, id)
-
-  try {
-    const updateData = {
-      ...normalized,
-      updatedAt: new Date(),
-    }
-
-    await db.collection('services').doc(id).update(updateData)
-
-    return {
-      id,
-      ...updateData,
-    }
-  } catch (error) {
-    console.error('Error updating service:', error)
-    return fallbackStore.saveService(normalized, id)
-  }
+  const current = await getServiceById(id)
+  const updated = await updateDocument('services', id, normalizeServicePayload(data, { partial: true }))
+  const removedImageUrls = [current.image].filter((url) => url && url !== updated.image)
+  await deleteImagesByUrls(removedImageUrls)
+  return updated
 }
 
-/**
- * Delete a service (soft delete)
- * @param {string} id - Service document ID
- * @returns {Promise<boolean>} Success status
- */
 export async function deleteService(id) {
-  if (!isFirestoreConfigured) return fallbackStore.deleteService(id)
-
-  try {
-    await db.collection('services').doc(id).update({
-      isActive: false,
-      updatedAt: new Date(),
-    })
-    return true
-  } catch (error) {
-    console.error('Error deleting service:', error)
-    throw error
-  }
+  const service = await deleteDocument('services', id)
+  await deleteImagesByUrls([service.image])
+  return service
 }

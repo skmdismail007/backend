@@ -54,6 +54,7 @@ FIREBASE_API_KEY=AIzaSyCJ3dtb_nv5zstIVtRgbDbvoJQE7e3cPN4
 FIREBASE_AUTH_DOMAIN=ebackend-66bde.firebaseapp.com
 FIREBASE_PROJECT_ID=ebackend-66bde
 FIREBASE_STORAGE_BUCKET=ebackend-66bde.firebasestorage.app
+FIREBASE_DATABASE_URL=https://ebackend-66bde-default-rtdb.firebaseio.com
 FIREBASE_MESSAGING_SENDER_ID=172774872527
 FIREBASE_APP_ID=1:172774872527:web:a1ed1f7ca9c0499aff6eba
 FIREBASE_MEASUREMENT_ID=G-5EDHEHCKQN
@@ -123,7 +124,8 @@ const API_URL = 'https://backend-3mp3.onrender.com/api'
 ### 502 Bad Gateway Error
 - Firebase Admin credential issue
 - Check FIREBASE_SERVICE_ACCOUNT_JSON is valid JSON
-- Verify Firestore is enabled in Firebase
+- Verify Realtime Database is enabled in Firebase
+- Verify Firebase Storage is enabled in Firebase
 
 ### CORS Errors
 - Update CORS_ORIGIN in env variables

@@ -1,6 +1,324 @@
 {
   "products": [
     {
+      "id": "product-1782749747536-55eb77",
+      "name": "aaa",
+      "category": "CCTV Camera",
+      "price": 22,
+      "badge": "2",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "xxxx",
+      "details": "xxxxx",
+      "specs": [
+        "xxxxx"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:15:47.537Z",
+      "updatedAt": "2026-06-29T16:15:47.536Z"
+    },
+    {
+      "id": "product-1782749647346-a01947",
+      "name": "aaa",
+      "category": "CCTV Camera",
+      "price": 22,
+      "badge": "2",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "xxxx",
+      "details": "xxxxx",
+      "specs": [
+        "xxxxx"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:14:07.346Z",
+      "updatedAt": "2026-06-29T16:14:07.346Z"
+    },
+    {
+      "id": "product-1782749639656-2952a1",
+      "name": "aaa",
+      "category": "CCTV Camera",
+      "price": 22,
+      "badge": "2",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "xxxx",
+      "details": "xxxxx",
+      "specs": [
+        "xxxxx"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:13:59.656Z",
+      "updatedAt": "2026-06-29T16:13:59.656Z"
+    },
+    {
+      "id": "product-1782749615707-1efe65",
+      "name": "dc",
+      "category": "CCTV Camera",
+      "price": 3,
+      "badge": "3",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "dfdsfdsfgd",
+      "details": "ddfgdfgdfg",
+      "specs": [
+        "ddfgfdg"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:13:35.707Z",
+      "updatedAt": "2026-06-29T16:13:35.707Z"
+    },
+    {
+      "id": "product-1782749471078-a5715d",
+      "name": "dc",
+      "category": "CCTV Camera",
+      "price": 3,
+      "badge": "3",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "dfdsfdsfgd",
+      "details": "ddfgdfgdfg",
+      "specs": [
+        "ddfgfdg"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:11:11.080Z",
+      "updatedAt": "2026-06-29T16:11:11.078Z"
+    },
+    {
+      "id": "product-1782749464789-10f581",
+      "name": "dc",
+      "category": "CCTV Camera",
+      "price": 3,
+      "badge": "3",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "dfdsfdsfgd",
+      "details": "ddfgdfgdfg",
+      "specs": [
+        "ddfgfdg"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:11:04.789Z",
+      "updatedAt": "2026-06-29T16:11:04.789Z"
+    },
+    {
+      "id": "product-1782749445224-210a80",
+      "name": "dc",
+      "category": "CCTV Camera",
+      "price": 3,
+      "badge": "3",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "dfdsfdsfgd",
+      "details": "ddfgdfgdfg",
+      "specs": [
+        "ddfgfdg"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:10:45.224Z",
+      "updatedAt": "2026-06-29T16:10:45.224Z"
+    },
+    {
+      "id": "product-1782749303276-8a5935",
+      "name": "dc",
+      "category": "CCTV Camera",
+      "price": 3,
+      "badge": "3",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "dfdsfdsfgd",
+      "details": "ddfgdfgdfg",
+      "specs": [
+        "ddfgfdg"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:08:23.277Z",
+      "updatedAt": "2026-06-29T16:08:23.276Z"
+    },
+    {
+      "id": "product-1782748972116-ecbf93",
+      "name": "hgvhgf",
+      "category": "CCTV Camera",
+      "price": 77,
+      "badge": "77",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "uyfjyghf",
+      "details": "nvjhgf",
+      "specs": [
+        "hvjhv"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:02:52.116Z",
+      "updatedAt": "2026-06-29T16:02:52.116Z"
+    },
+    {
+      "id": "product-1782748967632-d5cd0c",
+      "name": "hgvhgf",
+      "category": "CCTV Camera",
+      "price": 77,
+      "badge": "77",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "uyfjyghf",
+      "details": "nvjhgf",
+      "specs": [
+        "hvjhv"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:02:47.632Z",
+      "updatedAt": "2026-06-29T16:02:47.632Z"
+    },
+    {
+      "id": "product-1782748965961-9c2ae1",
+      "name": "hgvhgf",
+      "category": "CCTV Camera",
+      "price": 77,
+      "badge": "77",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "uyfjyghf",
+      "details": "nvjhgf",
+      "specs": [
+        "hvjhv"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-29T16:02:45.962Z",
+      "updatedAt": "2026-06-29T16:02:45.961Z"
+    },
+    {
+      "id": "product-1782730379541-772fab",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:52:59.541Z",
+      "updatedAt": "2026-06-29T10:52:59.541Z"
+    },
+    {
+      "id": "product-1782730295978-7223a2",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:51:35.978Z",
+      "updatedAt": "2026-06-29T10:51:35.978Z"
+    },
+    {
+      "id": "product-1782730270422-e52f12",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:51:10.422Z",
+      "updatedAt": "2026-06-29T10:51:10.422Z"
+    },
+    {
+      "id": "product-1782730268954-b98bd0",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:51:08.954Z",
+      "updatedAt": "2026-06-29T10:51:08.954Z"
+    },
+    {
+      "id": "product-1782730265023-30f0eb",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:51:05.023Z",
+      "updatedAt": "2026-06-29T10:51:05.023Z"
+    },
+    {
+      "id": "product-1782730259787-e7174a",
+      "name": "abbaba",
+      "category": "CCTV Camera",
+      "price": 11,
+      "badge": "111",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
+      "short": "aaa",
+      "details": "aaaa",
+      "specs": [
+        "aaaa"
+      ],
+      "includes": [
+        "aaaa"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-29T10:50:59.787Z",
+      "updatedAt": "2026-06-29T10:50:59.787Z"
+    },
+    {
       "id": "4mp-dome-camera",
       "name": "4MP Smart Dome CCTV Camera",
       "category": "CCTV Camera",
@@ -306,12 +624,91 @@
       "updatedAt": "2026-05-15T08:38:57.897Z"
     },
     {
+      "id": "product-1780489474923-b680de",
+      "name": "akjsbljkdrf",
+      "category": "CCTV Camera",
+      "price": 1,
+      "badge": "q",
+      "image": "/uploads/products/product-1780489474923-b680de/ec934cb3-eb90-40dc-af2a-d823bf8532fe.jpg",
+      "images": [
+        "/uploads/products/product-1780489474923-b680de/ec934cb3-eb90-40dc-af2a-d823bf8532fe.jpg"
+      ],
+      "short": "qqq",
+      "details": "qqq",
+      "specs": [
+        "qqq"
+      ],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-03T12:24:34.923Z",
+      "updatedAt": "2026-06-03T12:24:34.955Z"
+    },
+    {
+      "id": "product-1780487593406-da9843",
+      "name": "Md Ismail Sk",
+      "category": "CCTV Camera",
+      "price": 100,
+      "badge": "mm",
+      "image": "/uploads/products/product-1780487593406-da9843/2008aabb-5da5-48a4-956a-7d941f1fac8e.jpg",
+      "images": [
+        "/uploads/products/product-1780487593406-da9843/2008aabb-5da5-48a4-956a-7d941f1fac8e.jpg"
+      ],
+      "short": "hhdsvhdgdeg",
+      "details": "dvdsftedt",
+      "specs": [
+        "sgdvgdvdevg"
+      ],
+      "includes": [
+        "ededde"
+      ],
+      "isActive": true,
+      "createdAt": "2026-06-03T11:53:13.406Z",
+      "updatedAt": "2026-06-03T11:53:13.423Z"
+    },
+    {
+      "id": "product-1780325602369-586235",
+      "name": "jbbj",
+      "category": "CCTV Camera",
+      "price": 999,
+      "badge": "New",
+      "image": "/uploads/products/product-1780325602369-586235/858026a1-7080-453f-ac67-766ba860140f.png",
+      "images": [
+        "/uploads/products/product-1780325602369-586235/858026a1-7080-453f-ac67-766ba860140f.png"
+      ],
+      "short": "jhghj",
+      "details": "mbvhjh",
+      "specs": [],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-01T14:53:22.369Z",
+      "updatedAt": "2026-06-01T14:53:51.057Z"
+    },
+    {
+      "id": "product-1780325554637-fb9a3a",
+      "name": "dffddfdf",
+      "category": "CCTV Camera",
+      "price": 2222,
+      "badge": "New",
+      "image": "/uploads/products/product-1780325554637-fb9a3a/22ee0782-491c-4616-a5cc-b7cc90a6a5b7.jpg",
+      "images": [
+        "/uploads/products/product-1780325554637-fb9a3a/22ee0782-491c-4616-a5cc-b7cc90a6a5b7.jpg"
+      ],
+      "short": "edeed",
+      "details": "ewweewew",
+      "specs": [],
+      "includes": [],
+      "isActive": true,
+      "createdAt": "2026-06-01T14:52:34.638Z",
+      "updatedAt": "2026-06-01T14:52:34.651Z"
+    },
+    {
       "id": "product-1778835838121-c4d3ff",
       "name": "cccc",
       "category": "CCTV Camera",
       "price": 3,
-      "badge": "",
-      "image": "",
+      "badge": "New",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "dddd",
       "details": "dd dddd",
       "specs": [],
@@ -325,8 +722,9 @@
       "name": "aaaa",
       "category": "CCTV Camera",
       "price": 1233,
-      "badge": "",
-      "image": "",
+      "badge": "New",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "aaa",
       "details": "aaaaa",
       "specs": [],
@@ -340,8 +738,9 @@
       "name": "haha",
       "category": "Tar",
       "price": 12,
-      "badge": "",
-      "image": "",
+      "badge": "New",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "ass",
       "details": "sss",
       "specs": [],
@@ -355,8 +754,9 @@
       "name": "abcd",
       "category": "CCTV Camera",
       "price": 33,
-      "badge": "",
-      "image": "",
+      "badge": "New",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "dsvcdfzv",
       "details": "fjdbv jbdvljkfs",
       "specs": [],
@@ -370,8 +770,9 @@
       "name": "bdvf",
       "category": "CCTV Camera",
       "price": 2,
-      "badge": "",
-      "image": "",
+      "badge": "New",
+      "image": "/product-images/cctv-dome.svg",
+      "images": [],
       "short": "22",
       "details": "2sdsss",
       "specs": [],
@@ -473,17 +874,262 @@
     }
   ],
   "messages": [],
-  "quotes": [],
-  "users": [],
-  "addresses": [],
+  "quotes": [
+    {
+      "id": "quote-1780485379234-346136",
+      "status": "new",
+      "createdAt": "2026-06-03T11:16:19.234Z",
+      "updatedAt": "2026-06-03T11:16:19.234Z",
+      "name": "abcd ",
+      "email": "abcdef@gmail.com",
+      "phone": "1234567890",
+      "items": [
+        {
+          "id": "quote-item-1780485379234-3ad9f6",
+          "productId": "product-1780325602369-586235",
+          "name": "jbbj",
+          "quantity": 1,
+          "price": 999
+        }
+      ],
+      "note": "ANO-807,Astra Tower,Rajarhat,Newtown, New Town, West Bengal 700135. Payment: Cash on Delivery"
+    },
+    {
+      "id": "quote-1780485321253-ca5468",
+      "status": "new",
+      "createdAt": "2026-06-03T11:15:21.253Z",
+      "updatedAt": "2026-06-03T11:15:21.253Z",
+      "name": "abcd ",
+      "email": "abcdef@gmail.com",
+      "phone": "1234567890",
+      "items": [
+        {
+          "id": "quote-item-1780485321253-d98cfd",
+          "productId": "8ch-nvr-kit",
+          "name": "8 Channel NVR Security Kit",
+          "quantity": 1,
+          "price": 249
+        },
+        {
+          "id": "quote-item-1780485321253-b24587",
+          "productId": "product-1780325602369-586235",
+          "name": "jbbj",
+          "quantity": 1,
+          "price": 999
+        }
+      ],
+      "note": "ANO-807,Astra Tower,Rajarhat,Newtown, New Town, West Bengal 700135. Payment: Cash on Delivery"
+    },
+    {
+      "id": "quote-1780471551324-9c6c88",
+      "status": "new",
+      "createdAt": "2026-06-03T07:25:51.324Z",
+      "updatedAt": "2026-06-03T07:25:51.324Z",
+      "name": "abcd ",
+      "email": "abcdef@gmail.com",
+      "phone": "1234567890",
+      "items": [
+        {
+          "id": "quote-item-1780471551324-ea26f9",
+          "productId": "4mp-dome-camera",
+          "name": "4MP Smart Dome CCTV Camera",
+          "quantity": 2,
+          "price": 89
+        }
+      ],
+      "note": "ANO-807,Astra Tower,Rajarhat,Newtown, New Town, West Bengal 700135. Payment: Cash on Delivery"
+    },
+    {
+      "id": "quote-1780463742070-ac3c26",
+      "status": "new",
+      "createdAt": "2026-06-03T05:15:42.070Z",
+      "updatedAt": "2026-06-03T05:15:42.070Z",
+      "name": "abcd",
+      "email": "abcdef@gmail.com",
+      "phone": "1234567890",
+      "items": [
+        {
+          "id": "quote-item-1780463742070-597838",
+          "productId": "4mp-dome-camera",
+          "name": "4MP Smart Dome CCTV Camera",
+          "quantity": 1,
+          "price": 89
+        }
+      ],
+      "note": "ANO-807,Astra Tower,Rajarhat,Newtown, New Town, West Bengal 700135. Payment: Cash on Delivery"
+    }
+  ],
+  "users": [
+    {
+      "id": "user-1780471524419-4a1578",
+      "createdAt": "2026-06-03T07:25:24.419Z",
+      "updatedAt": "2026-06-03T07:25:24.419Z",
+      "name": "abcd ",
+      "email": "abcdef@gmail.com",
+      "password": "1234567890"
+    }
+  ],
+  "addresses": [
+    {
+      "id": "address-1780471536954-883625",
+      "userId": "user-1780471524419-4a1578",
+      "isDefault": true,
+      "createdAt": "2026-06-03T07:25:36.955Z",
+      "updatedAt": "2026-06-03T07:25:36.955Z",
+      "fullName": "abcd ",
+      "phone": "1234567890",
+      "street": "ANO-807,Astra Tower,Rajarhat,Newtown",
+      "city": "New Town",
+      "state": "West Bengal",
+      "pinCode": "700135",
+      "addressType": "home"
+    },
+    {
+      "id": "address-1780463721817-ff2d3c",
+      "userId": "user-1779352748060-be9d1a",
+      "isDefault": true,
+      "createdAt": "2026-06-03T05:15:21.817Z",
+      "updatedAt": "2026-06-03T05:15:21.817Z",
+      "fullName": "abcd",
+      "phone": "1234567890",
+      "street": "ANO-807,Astra Tower,Rajarhat,Newtown",
+      "city": "New Town",
+      "state": "West Bengal",
+      "pinCode": "700135",
+      "addressType": "home"
+    }
+  ],
   "orders": [
+    {
+      "id": "order-1780485379244-eab8bd",
+      "userId": "user-1780471524419-4a1578",
+      "status": "pending",
+      "trackingNumber": "AKIWA85379244",
+      "createdAt": "2026-06-03T11:16:19.244Z",
+      "updatedAt": "2026-06-03T11:16:19.244Z",
+      "items": [
+        {
+          "id": "product-1780325602369-586235",
+          "productId": "product-1780325602369-586235",
+          "name": "jbbj",
+          "quantity": 1,
+          "price": 999,
+          "image": "/uploads/products/product-1780325602369-586235/858026a1-7080-453f-ac67-766ba860140f.png"
+        }
+      ],
+      "total": 999,
+      "address": {
+        "id": "address-1780471536954-883625",
+        "userId": "user-1780471524419-4a1578",
+        "isDefault": true,
+        "createdAt": "2026-06-03T07:25:36.955Z",
+        "updatedAt": "2026-06-03T07:25:36.955Z",
+        "fullName": "abcd ",
+        "phone": "1234567890",
+        "street": "ANO-807,Astra Tower,Rajarhat,Newtown",
+        "city": "New Town",
+        "state": "West Bengal",
+        "pinCode": "700135",
+        "addressType": "home"
+      },
+      "payment": {
+        "method": "cod",
+        "label": "Cash on Delivery",
+        "status": "pending",
+        "amount": 999
+      },
+      "email": "abcdef@gmail.com"
+    },
+    {
+      "id": "order-1780471551334-3bdfe8",
+      "userId": "user-1780471524419-4a1578",
+      "status": "cancelled",
+      "trackingNumber": "AKIWA71551334",
+      "createdAt": "2026-06-03T07:25:51.334Z",
+      "updatedAt": "2026-06-03T10:56:58.419Z",
+      "items": [
+        {
+          "id": "4mp-dome-camera",
+          "productId": "4mp-dome-camera",
+          "name": "4MP Smart Dome CCTV Camera",
+          "quantity": 2,
+          "price": 89,
+          "image": "/product-images/cctv-dome.svg"
+        }
+      ],
+      "total": 178,
+      "address": {
+        "id": "address-1780471536954-883625",
+        "userId": "user-1780471524419-4a1578",
+        "isDefault": true,
+        "createdAt": "2026-06-03T07:25:36.955Z",
+        "updatedAt": "2026-06-03T07:25:36.955Z",
+        "fullName": "abcd ",
+        "phone": "1234567890",
+        "street": "ANO-807,Astra Tower,Rajarhat,Newtown",
+        "city": "New Town",
+        "state": "West Bengal",
+        "pinCode": "700135",
+        "addressType": "home"
+      },
+      "payment": {
+        "method": "cod",
+        "label": "Cash on Delivery",
+        "status": "pending",
+        "amount": 178
+      },
+      "email": "abcdef@gmail.com",
+      "cancellationReason": "",
+      "cancelledBy": "user",
+      "cancelledAt": "2026-06-03T10:56:58.419Z"
+    },
+    {
+      "id": "order-1780463742076-752b8f",
+      "userId": "user-1779352748060-be9d1a",
+      "status": "pending",
+      "trackingNumber": "AKIWA63742076",
+      "createdAt": "2026-06-03T05:15:42.076Z",
+      "updatedAt": "2026-06-03T05:15:42.076Z",
+      "items": [
+        {
+          "id": "4mp-dome-camera",
+          "productId": "4mp-dome-camera",
+          "name": "4MP Smart Dome CCTV Camera",
+          "quantity": 1,
+          "price": 89,
+          "image": "/product-images/cctv-dome.svg"
+        }
+      ],
+      "total": 89,
+      "address": {
+        "id": "address-1780463721817-ff2d3c",
+        "userId": "user-1779352748060-be9d1a",
+        "isDefault": true,
+        "createdAt": "2026-06-03T05:15:21.817Z",
+        "updatedAt": "2026-06-03T05:15:21.817Z",
+        "fullName": "abcd",
+        "phone": "1234567890",
+        "street": "ANO-807,Astra Tower,Rajarhat,Newtown",
+        "city": "New Town",
+        "state": "West Bengal",
+        "pinCode": "700135",
+        "addressType": "home"
+      },
+      "payment": {
+        "method": "cod",
+        "label": "Cash on Delivery",
+        "status": "pending",
+        "amount": 89
+      },
+      "email": "abcdef@gmail.com"
+    },
     {
       "id": "order-1778837725673-d5c37e",
       "userId": "test-user",
-      "status": "processing",
+      "status": "shipped",
       "trackingNumber": "AKIWA37725673",
       "createdAt": "2026-05-15T09:35:25.673Z",
-      "updatedAt": "2026-05-15T09:36:26.872Z",
+      "updatedAt": "2026-06-03T11:01:13.528Z",
       "items": [
         {
           "name": "x",
@@ -497,5 +1143,27 @@
       },
       "email": "a@test.com"
     }
-  ]
+  ],
+  "websiteSettings": {
+    "heroEyebrow": "CCTV & Web Studio and abcd",
+    "heroTitle": "Premium Security & Modern Web Solutions",
+    "heroCopy": "Professional CCTV hardware and high-performance React websites for your business.",
+    "heroImage": "https://cctvvapi.com/wp-content/uploads/2022/07/The-Importance-of-Security-Cameras-for-a-Small-Business-guest-blog-from-Streamline-Telecom-image.jpg",
+    "heroImages": [],
+    "primaryCtaLabel": "View Products",
+    "secondaryCtaLabel": "Services",
+    "featuredTitle": "Featured Products",
+    "servicesTitle": "Website Packages",
+    "testimonialEyebrow": "Customer reviews",
+    "testimonialTitle": "Trusted for CCTV products and business websites.",
+    "testimonialText": "Customers use Akiwa for practical product advice, clear website builds, and support that keeps projects moving.",
+    "testimonialImageOne": "https://images.unsplash.com/photo-1556745757-8d76bdb6984b?auto=format&fit=crop&w=700&q=80",
+    "testimonialImageTwo": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=700&q=80",
+    "contactEyebrow": "Talk to Akiwa",
+    "contactTitle": "Ready for CCTV products or a website quote?",
+    "contactText": "Share your requirement and get quick help with product selection, installation planning, or a website package.",
+    "contactEmail": "info@akiwa.com",
+    "contactPhone": "+9187**********38",
+    "updatedAt": "2026-06-03T11:17:46.573Z"
+  }
 }

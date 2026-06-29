@@ -1,33 +1,55 @@
-/**
- * Firebase Admin SDK Initialization
- * Connects to Firebase Firestore for real-time database operations
- */
-
 import admin from 'firebase-admin'
-import { existsSync, readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { dirname, isAbsolute, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { env } from '../config/env.js'
 
-const serviceAccountKeyPath = resolve(process.cwd(), env.firebase.serviceAccountKeyPath)
+const libDir = dirname(fileURLToPath(import.meta.url))
+const backendRoot = resolve(libDir, '../..')
 
-const hasAdminCredential = Boolean(
-  env.firebase.serviceAccountJson ||
-    (env.firebase.clientEmail && env.firebase.privateKey) ||
-    existsSync(serviceAccountKeyPath) ||
-    process.env.GOOGLE_APPLICATION_CREDENTIALS,
-)
+function findBundledServiceAccountPath() {
+  try {
+    const match = readdirSync(backendRoot).find((fileName) =>
+      /^.+-firebase-adminsdk-.+\.json$/i.test(fileName),
+    )
+    return match ? resolve(backendRoot, match) : ''
+  } catch {
+    return ''
+  }
+}
 
-export const isFirestoreConfigured = hasAdminCredential
+function getServiceAccountKeyPathCandidates() {
+  const configuredPath = env.firebase.serviceAccountKeyPath
+  const candidates = []
 
-export const isRealtimeDatabaseConfigured = Boolean(env.firebase.databaseURL && hasAdminCredential)
+  if (configuredPath) {
+    candidates.push(
+      isAbsolute(configuredPath) ? configuredPath : resolve(process.cwd(), configuredPath),
+      isAbsolute(configuredPath) ? configuredPath : resolve(backendRoot, configuredPath),
+    )
+  }
+
+  const discoveredPath = findBundledServiceAccountPath()
+  if (discoveredPath) candidates.push(discoveredPath)
+
+  return [...new Set(candidates)]
+}
 
 function normalizePrivateKey(privateKey) {
   return privateKey?.replace(/\\n/g, '\n')
 }
 
+function parseServiceAccountJson(json) {
+  return JSON.parse(json.replace(/\\n/g, '\n'))
+}
+
+function hasApplicationDefaultCredentials() {
+  return Boolean(process.env.GOOGLE_APPLICATION_CREDENTIALS)
+}
+
 function getCredential() {
   if (env.firebase.serviceAccountJson) {
-    return admin.credential.cert(JSON.parse(env.firebase.serviceAccountJson))
+    return admin.credential.cert(parseServiceAccountJson(env.firebase.serviceAccountJson))
   }
 
   if (env.firebase.clientEmail && env.firebase.privateKey) {
@@ -38,57 +60,48 @@ function getCredential() {
     })
   }
 
-  if (existsSync(serviceAccountKeyPath)) {
-    return admin.credential.cert(JSON.parse(readFileSync(serviceAccountKeyPath, 'utf8')))
+  const serviceAccountKeyPath = getServiceAccountKeyPathCandidates().find((candidate) => existsSync(candidate))
+  if (serviceAccountKeyPath) {
+    const serviceAccount = JSON.parse(readFileSync(serviceAccountKeyPath, 'utf8'))
+    return admin.credential.cert(serviceAccount)
   }
 
-  return admin.credential.applicationDefault()
+  if (hasApplicationDefaultCredentials()) {
+    return admin.credential.applicationDefault()
+  }
+
+  throw new Error(
+    'Firebase Admin credentials are required. Set FIREBASE_SERVICE_ACCOUNT_JSON, ' +
+      'FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY, GOOGLE_APPLICATION_CREDENTIALS, ' +
+      'or FIREBASE_SERVICE_ACCOUNT_KEY_PATH.',
+  )
 }
 
-try {
-  admin.initializeApp({
+function initializeFirebaseAdmin() {
+  if (admin.apps.length) return admin.app()
+
+  if (!env.firebase.storageBucket) {
+    throw new Error('FIREBASE_STORAGE_BUCKET is required for Firebase Storage uploads.')
+  }
+
+  if (!env.firebase.databaseURL) {
+    throw new Error('FIREBASE_DATABASE_URL is required for Firebase Realtime Database.')
+  }
+
+  return admin.initializeApp({
     credential: getCredential(),
     projectId: env.firebase.projectId,
-    storageBucket: env.firebase.storageBucket,
     databaseURL: env.firebase.databaseURL,
+    storageBucket: env.firebase.storageBucket,
   })
-
-  admin.app()
-  console.log('✓ Firebase Admin SDK initialized successfully')
-} catch (error) {
-  console.error('Failed to initialize Firebase Admin SDK:', error.message)
-  console.error('\nTo fix this:')
-  console.error('1. Go to Firebase Console: https://console.firebase.google.com')
-  console.error('2. Select project:', env.firebase.projectId)
-  console.error('3. Go to Project Settings → Service Accounts')
-  console.error('4. Click "Generate New Private Key"')
-  console.error('5. For Render, add FIREBASE_SERVICE_ACCOUNT_JSON with the full JSON key')
-  console.error('6. For local dev, save the JSON file as: firebase-service-account-key.json')
-  process.exit(1)
 }
 
-// Get Firestore database instance
-export const db = admin.firestore()
-
-// Get Realtime Database instance
+export const firebaseApp = initializeFirebaseAdmin()
 export const realtimeDb = admin.database()
-
-// Get Authentication instance
 export const auth = admin.auth()
-
-// Get Storage instance
 export const storage = admin.storage()
+export const storageBucketName = env.firebase.storageBucket
+export const isRealtimeDatabaseConfigured = Boolean(env.firebase.databaseURL)
+export const isStorageConfigured = Boolean(env.firebase.storageBucket)
 
-// Export admin for other uses
 export default admin
-
-/**
- * Database Collections:
- * - products: Product catalog
- * - services: Service offerings
- * - customers: Customer profiles
- * - orders: Order history
- * - cart: Shopping cart items
- * - wishlist: Customer wishlists
- * - admins: Admin users and permissions
- */

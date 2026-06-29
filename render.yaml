@@ -24,6 +24,8 @@ services:
         value: ebackend-66bde
       - key: FIREBASE_STORAGE_BUCKET
         value: ebackend-66bde.firebasestorage.app
+      - key: FIREBASE_DATABASE_URL
+        value: https://ebackend-66bde-default-rtdb.firebaseio.com
       - key: FIREBASE_MESSAGING_SENDER_ID
         value: "172774872527"
       - key: FIREBASE_APP_ID

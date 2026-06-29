@@ -1,5 +1,27 @@
 import { z } from 'zod'
 
+const paymentMethodSchema = z.enum(['cod', 'card', 'upi'])
+const paymentStatusSchema = z.enum(['pending', 'authorized', 'paid', 'failed'])
+const paymentDetailsSchema = z.object({
+  method: paymentMethodSchema,
+  label: z.string().min(1).optional(),
+  status: paymentStatusSchema.default('pending'),
+  amount: z.coerce.number().nonnegative().optional(),
+  card: z
+    .object({
+      cardholder: z.string().min(2).optional(),
+      brand: z.string().optional(),
+      last4: z.string().regex(/^\d{4}$/).optional(),
+    })
+    .optional(),
+  upi: z
+    .object({
+      upiId: z.string().min(3).optional(),
+    })
+    .optional(),
+  notes: z.string().max(500).optional(),
+})
+
 export const reviewCreateSchema = z.object({
   body: z.object({
     name: z.string().min(2),
@@ -108,6 +130,7 @@ export const orderCreateSchema = z.object({
     ),
     total: z.coerce.number().nonnegative(),
     address: z.record(z.string(), z.any()),
+    payment: paymentDetailsSchema,
     email: z.string().email(),
     status: z.string().default('pending'),
     trackingNumber: z.string().optional(),

@@ -12,7 +12,7 @@ npm start
 This command runs `node server.js` which:
 1. ✅ Loads your environment variables from `.env`
 2. ✅ Initializes the Express app
-3. ✅ Initializes Firebase Admin SDK for Firestore
+3. ✅ Initializes Firebase Admin SDK for Realtime Database and Storage
 4. ✅ Starts listening on port 4000
 5. ✅ Outputs: `Backend API running on https://backend-3mp3.onrender.com`
 
@@ -62,6 +62,7 @@ FIREBASE_API_KEY=AIzaSyCJ3dtb_nv5zstIVtRgbDbvoJQE7e3cPN4
 FIREBASE_AUTH_DOMAIN=ebackend-66bde.firebaseapp.com
 FIREBASE_PROJECT_ID=ebackend-66bde
 FIREBASE_STORAGE_BUCKET=ebackend-66bde.firebasestorage.app
+FIREBASE_DATABASE_URL=https://ebackend-66bde-default-rtdb.firebaseio.com
 FIREBASE_MESSAGING_SENDER_ID=172774872527
 FIREBASE_APP_ID=1:172774872527:web:a1ed1f7ca9c0499aff6eba
 FIREBASE_MEASUREMENT_ID=G-5EDHEHCKQN
@@ -149,7 +150,8 @@ In Render dashboard:
 ## Production Checklist
 
 - [ ] All environment variables set in Render
-- [ ] Firestore is enabled in Firebase
+- [ ] Realtime Database is enabled in Firebase
+- [ ] Firebase Storage is enabled in Firebase
 - [ ] FIREBASE_SERVICE_ACCOUNT_JSON is set in Render
 - [ ] CORS_ORIGIN matches your frontend URL
 - [ ] NODE_ENV=production

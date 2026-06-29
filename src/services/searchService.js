@@ -1,88 +1,37 @@
-/**
- * Search Service - Firebase Implementation
- * Handles searching across products and services
- */
+import { collectionRef, mapDoc } from './realtimeDataService.js'
 
-import { db, isFirestoreConfigured } from '../lib/firebase.js'
-import { fallbackStore } from '../lib/fallbackStore.js'
+function matchesSearch(record, fields, search) {
+  return fields
+    .map((field) => record[field])
+    .join(' ')
+    .toLowerCase()
+    .includes(search)
+}
 
-/**
- * Search catalog for products and services
- * @param {string} query - Search query
- * @returns {Promise<Object>} { products: [], services: [] }
- */
 export async function searchCatalog(query) {
-  const search = query.trim()
+  const search = query.trim().toLowerCase()
+  if (!search) return { products: [], services: [], blogPosts: [] }
 
-  if (!search) {
-    return { products: [], services: [] }
-  }
+  const [productSnapshot, serviceSnapshot, blogSnapshot] = await Promise.all([
+    collectionRef('products').where('isActive', '==', true).get(),
+    collectionRef('services').where('isActive', '==', true).get(),
+    collectionRef('blogPosts').where('published', '==', true).get(),
+  ])
 
-  if (!isFirestoreConfigured) {
-    const products = (await fallbackStore.listProducts({ search })).slice(0, 8)
-    const services = (await fallbackStore.listServices())
-      .filter(item =>
-        [item.name, item.category, item.description]
-          .join(' ')
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-      .slice(0, 8)
-    return { products, services }
-  }
+  const products = productSnapshot.docs
+    .map(mapDoc)
+    .filter((product) => matchesSearch(product, ['name', 'category', 'short', 'details', 'badge'], search))
+    .slice(0, 8)
 
-  try {
-    const searchLower = search.toLowerCase()
+  const services = serviceSnapshot.docs
+    .map(mapDoc)
+    .filter((service) => matchesSearch(service, ['name', 'category', 'description', 'summary'], search))
+    .slice(0, 8)
 
-    // Search products
-    const productSnapshot = await db
-      .collection('products')
-      .where('isActive', '==', true)
-      .get()
+  const blogPosts = blogSnapshot.docs
+    .map(mapDoc)
+    .filter((post) => matchesSearch(post, ['title', 'excerpt', 'content', 'author'], search))
+    .slice(0, 8)
 
-    const products = productSnapshot.docs
-      .filter(doc => {
-        const data = doc.data()
-        return (
-          data.name?.toLowerCase().includes(searchLower) ||
-          data.category?.toLowerCase().includes(searchLower) ||
-          data.short?.toLowerCase().includes(searchLower)
-        )
-      })
-      .slice(0, 8)
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-
-    // Search services
-    const serviceSnapshot = await db
-      .collection('services')
-      .where('isActive', '==', true)
-      .get()
-
-    const services = serviceSnapshot.docs
-      .filter(doc => {
-        const data = doc.data()
-        return (
-          data.name?.toLowerCase().includes(searchLower) ||
-          data.category?.toLowerCase().includes(searchLower) ||
-          data.description?.toLowerCase().includes(searchLower)
-        )
-      })
-      .slice(0, 8)
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-
-    return { products, services }
-  } catch (error) {
-    console.error('Error searching catalog:', error)
-    // Fallback to local store
-    const products = (await fallbackStore.listProducts({ search })).slice(0, 8)
-    const services = (await fallbackStore.listServices())
-      .filter(item =>
-        [item.name, item.category, item.description]
-          .join(' ')
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
-      .slice(0, 8)
-    return { products, services }
-  }
+  return { products, services, blogPosts }
 }
