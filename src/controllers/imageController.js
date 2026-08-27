@@ -31,7 +31,7 @@ export async function postProductImages(request, response) {
       })
     }
 
-    // Upload all files to Firebase Storage
+    // Upload all files to backend-managed storage.
     const uploadedUrls = await Promise.all(files.map((file) => uploadProductImage(file, productId)))
 
     // Update product with new images
@@ -82,7 +82,7 @@ export async function deleteProductImageByUrl(request, response) {
       primaryImage = updatedImages[0] || null
     }
 
-    // Delete from Firebase Storage
+    // Delete from backend-managed storage.
     await deleteProductImage(imageUrl)
 
     // Update product

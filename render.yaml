@@ -16,21 +16,9 @@ services:
         value: 4000
       - key: CORS_ORIGIN
         value: https://your-frontend.onrender.com,http://localhost:5173,http://localhost:5174
-      - key: FIREBASE_API_KEY
-        value: AIzaSyCJ3dtb_nv5zstIVtRgbDbvoJQE7e3cPN4
-      - key: FIREBASE_AUTH_DOMAIN
-        value: ebackend-66bde.firebaseapp.com
-      - key: FIREBASE_PROJECT_ID
-        value: ebackend-66bde
-      - key: FIREBASE_STORAGE_BUCKET
-        value: ebackend-66bde.firebasestorage.app
-      - key: FIREBASE_DATABASE_URL
-        value: https://ebackend-66bde-default-rtdb.firebaseio.com
-      - key: FIREBASE_MESSAGING_SENDER_ID
-        value: "172774872527"
-      - key: FIREBASE_APP_ID
-        value: 1:172774872527:web:a1ed1f7ca9c0499aff6eba
-      - key: FIREBASE_MEASUREMENT_ID
-        value: G-5EDHEHCKQN
-      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+      - key: MONGODB_URI
         sync: false
+      - key: MONGODB_CONNECTION_TIMEOUT_MS
+        value: "10000"
+      - key: API_BASE_URL
+        value: https://backend-3mp3.onrender.com/api

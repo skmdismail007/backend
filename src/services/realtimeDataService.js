@@ -1,4 +1,5 @@
-import { realtimeDb } from '../lib/firebase.js'
+import mongoose from 'mongoose'
+import { getModelForCollection } from '../models/index.js'
 
 export const FieldValue = {
   serverTimestamp: () => new Date().toISOString(),
@@ -16,10 +17,13 @@ export function mapRealtimeValue(value) {
   if (!value) return value
   if (typeof value.toDate === 'function') return value.toDate().toISOString()
   if (value instanceof Date) return value.toISOString()
+  if (value instanceof mongoose.Types.ObjectId) return value.toString()
   if (Array.isArray(value)) return value.map(mapRealtimeValue)
   if (typeof value === 'object') {
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, mapRealtimeValue(entry)]),
+      Object.entries(value)
+        .filter(([key]) => key !== '_id' && key !== '__v')
+        .map(([key, entry]) => [key, mapRealtimeValue(entry)]),
     )
   }
   return value
@@ -32,6 +36,7 @@ export function mapDoc(doc) {
 export function stripUndefined(data) {
   if (Array.isArray(data)) return data.map(stripUndefined).filter((value) => value !== undefined)
   if (data instanceof Date) return data.toISOString()
+  if (data instanceof mongoose.Types.ObjectId) return data.toString()
   if (!data || typeof data !== 'object') return data
 
   return Object.fromEntries(
@@ -41,43 +46,82 @@ export function stripUndefined(data) {
   )
 }
 
-function ensureRealtimeKey(id) {
+function createMongoId() {
+  return new mongoose.Types.ObjectId().toString()
+}
+
+function ensureMongoKey(id) {
   const key = String(id || '').trim()
-  if (!key || /[.#$/[\]]/.test(key)) {
-    throw Object.assign(new Error('Invalid record id for Firebase Realtime Database'), { statusCode: 400 })
+  if (!key) {
+    throw Object.assign(new Error('Invalid record id for MongoDB'), { statusCode: 400 })
   }
   return key
 }
 
-function compareValues(a, b, direction = 'asc') {
-  const first = a ?? ''
-  const second = b ?? ''
-  const result =
-    typeof first === 'number' && typeof second === 'number'
-      ? first - second
-      : String(first).localeCompare(String(second))
-  return direction === 'desc' ? -result : result
+function normalizeMongoDocument(value) {
+  if (!value) return null
+  const record = mapRealtimeValue(value)
+  const id = String(value._id || record.id || '')
+  delete record._id
+  delete record.__v
+  return {
+    id: record.id || id,
+    ...record,
+  }
 }
 
-function matchesFilter(record, [field, operator, expected]) {
-  const actual = record?.[field]
+function addCondition(query, field, condition) {
+  const existing = query[field]
 
-  if (operator === '==') return actual === expected
-  if (operator === 'array-contains') return Array.isArray(actual) && actual.includes(expected)
-  if (operator === '!=') return actual !== expected
-  if (operator === 'in') return Array.isArray(expected) && expected.includes(actual)
+  if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+    query[field] = condition
+    return
+  }
 
-  throw Object.assign(new Error(`Unsupported Realtime Database filter operator: ${operator}`), {
-    statusCode: 400,
+  query[field] = { ...existing, ...condition }
+}
+
+function buildMongoQuery(filters = []) {
+  const query = {}
+
+  filters.forEach(([field, operator, expected]) => {
+    if (operator === '==') {
+      query[field] = expected
+      return
+    }
+
+    if (operator === 'array-contains') {
+      query[field] = expected
+      return
+    }
+
+    if (operator === '!=') {
+      addCondition(query, field, { $ne: expected })
+      return
+    }
+
+    if (operator === 'in') {
+      if (!Array.isArray(expected)) {
+        throw Object.assign(new Error('MongoDB "in" filter expects an array value'), { statusCode: 400 })
+      }
+      addCondition(query, field, { $in: expected })
+      return
+    }
+
+    throw Object.assign(new Error(`Unsupported MongoDB filter operator: ${operator}`), {
+      statusCode: 400,
+    })
   })
+
+  return query
 }
 
-class RealtimeDocumentSnapshot {
+class MongoDocumentSnapshot {
   constructor(collectionName, id, value) {
     this.id = id
-    this.ref = new RealtimeDocumentRef(collectionName, id)
+    this.ref = new MongoDocumentRef(collectionName, id)
     this.exists = value !== null && value !== undefined
-    this._value = value
+    this._value = normalizeMongoDocument(value)
   }
 
   data() {
@@ -85,7 +129,7 @@ class RealtimeDocumentSnapshot {
   }
 }
 
-class RealtimeQuerySnapshot {
+class MongoQuerySnapshot {
   constructor(docs) {
     this.docs = docs
     this.size = docs.length
@@ -93,41 +137,59 @@ class RealtimeQuerySnapshot {
   }
 }
 
-class RealtimeDocumentRef {
+class MongoDocumentRef {
   constructor(collectionName, id) {
     this.collectionName = collectionName
-    this.id = ensureRealtimeKey(id)
-    this.path = `${collectionName}/${this.id}`
+    this.id = ensureMongoKey(id)
   }
 
-  ref() {
-    return realtimeDb.ref(this.path)
+  model() {
+    return getModelForCollection(this.collectionName)
   }
 
   async get() {
-    const snapshot = await this.ref().once('value')
-    return new RealtimeDocumentSnapshot(this.collectionName, this.id, snapshot.val())
+    const record = await this.model().findOne({ _id: this.id }).lean()
+    return new MongoDocumentSnapshot(this.collectionName, this.id, record)
   }
 
   async set(data, options = {}) {
     const record = stripUndefined(data)
+    const document = {
+      ...record,
+      id: record.id || this.id,
+    }
+
     if (options.merge) {
-      await this.ref().update(record)
+      await this.model().updateOne(
+        { _id: this.id },
+        { $set: document },
+        { runValidators: true, upsert: true },
+      )
       return
     }
-    await this.ref().set(record)
+
+    await this.model().replaceOne(
+      { _id: this.id },
+      { _id: this.id, ...document },
+      { runValidators: true, upsert: true },
+    )
   }
 
   async update(updates) {
-    await this.ref().update(stripUndefined(updates))
+    const record = stripUndefined(updates)
+    await this.model().updateOne(
+      { _id: this.id },
+      { $set: record },
+      { runValidators: true },
+    )
   }
 
   async delete() {
-    await this.ref().remove()
+    await this.model().deleteOne({ _id: this.id })
   }
 }
 
-class RealtimeCollectionQuery {
+class MongoCollectionQuery {
   constructor(collectionName, options = {}) {
     this.collectionName = collectionName
     this.filters = options.filters || []
@@ -135,12 +197,16 @@ class RealtimeCollectionQuery {
     this.limitCount = options.limitCount || null
   }
 
+  model() {
+    return getModelForCollection(this.collectionName)
+  }
+
   doc(id) {
-    return new RealtimeDocumentRef(this.collectionName, id)
+    return new MongoDocumentRef(this.collectionName, id)
   }
 
   where(field, operator, value) {
-    return new RealtimeCollectionQuery(this.collectionName, {
+    return new MongoCollectionQuery(this.collectionName, {
       filters: [...this.filters, [field, operator, value]],
       order: this.order,
       limitCount: this.limitCount,
@@ -148,7 +214,7 @@ class RealtimeCollectionQuery {
   }
 
   orderBy(field, direction = 'asc') {
-    return new RealtimeCollectionQuery(this.collectionName, {
+    return new MongoCollectionQuery(this.collectionName, {
       filters: this.filters,
       order: [field, direction],
       limitCount: this.limitCount,
@@ -156,7 +222,7 @@ class RealtimeCollectionQuery {
   }
 
   limit(limitCount) {
-    return new RealtimeCollectionQuery(this.collectionName, {
+    return new MongoCollectionQuery(this.collectionName, {
       filters: this.filters,
       order: this.order,
       limitCount,
@@ -164,31 +230,26 @@ class RealtimeCollectionQuery {
   }
 
   async get() {
-    const snapshot = await realtimeDb.ref(this.collectionName).once('value')
-    const value = snapshot.val() || {}
-    let entries = Object.entries(value)
-
-    if (this.filters.length) {
-      entries = entries.filter(([, record]) =>
-        this.filters.every((filter) => matchesFilter(record, filter)),
-      )
-    }
+    const query = this.model().find(buildMongoQuery(this.filters)).lean()
 
     if (this.order) {
       const [field, direction] = this.order
-      entries = entries.sort(([, a], [, b]) => compareValues(a?.[field], b?.[field], direction))
+      query.sort({ [field]: direction === 'desc' ? -1 : 1 })
     }
 
-    if (this.limitCount) entries = entries.slice(0, this.limitCount)
+    if (this.limitCount) query.limit(this.limitCount)
 
-    return new RealtimeQuerySnapshot(
-      entries.map(([id, record]) => new RealtimeDocumentSnapshot(this.collectionName, id, record)),
+    const records = await query.exec()
+    return new MongoQuerySnapshot(
+      records.map((record) =>
+        new MongoDocumentSnapshot(this.collectionName, String(record._id || record.id), record),
+      ),
     )
   }
 }
 
 export function collectionRef(collectionName) {
-  return new RealtimeCollectionQuery(collectionName)
+  return new MongoCollectionQuery(collectionName)
 }
 
 export async function getDocument(collectionName, id) {
@@ -221,15 +282,15 @@ export async function listDocuments(collectionName, options = {}) {
 }
 
 export async function createDocument(collectionName, data, id) {
+  const documentId = ensureMongoKey(id || createMongoId())
   const record = stripUndefined({
     ...data,
-    createdAt: now(),
+    id: data.id || documentId,
+    createdAt: data.createdAt || now(),
     updatedAt: now(),
   })
 
-  const ref = id
-    ? collectionRef(collectionName).doc(id)
-    : collectionRef(collectionName).doc(realtimeDb.ref(collectionName).push().key)
+  const ref = collectionRef(collectionName).doc(documentId)
   await ref.set(record)
   return getDocument(collectionName, ref.id)
 }
@@ -251,13 +312,7 @@ export async function deleteDocument(collectionName, id) {
 }
 
 export async function countDocuments(collectionName, filters = []) {
-  let query = collectionRef(collectionName)
-  filters.forEach(([field, operator, value]) => {
-    query = query.where(field, operator, value)
-  })
-
-  const snapshot = await query.get()
-  return snapshot.size
+  return getModelForCollection(collectionName).countDocuments(buildMongoQuery(filters))
 }
 
 export async function deleteQuerySnapshot(snapshot) {

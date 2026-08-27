@@ -154,6 +154,23 @@ export async function createUserAddress(userId, data) {
   return createDocument('addresses', address)
 }
 
+export async function updateUserAddress(userId, addressId, data) {
+  const address = await getDocument('addresses', addressId)
+  if (address.userId !== userId) throw notFound()
+
+  const updates = { ...data, userId }
+  if (data.isDefault) {
+    const existing = await listUserAddresses(userId)
+    await Promise.all(
+      existing
+        .filter((item) => item.id !== addressId)
+        .map((item) => updateDocument('addresses', item.id, { isDefault: false })),
+    )
+  }
+
+  return updateDocument('addresses', addressId, updates)
+}
+
 export async function setUserDefaultAddress(userId, addressId) {
   const addresses = await listUserAddresses(userId)
   if (!addresses.some((address) => address.id === addressId)) throw notFound()

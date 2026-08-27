@@ -1,6 +1,6 @@
 # Akiwa Backend
 
-Express backend using Firebase Realtime Database and Firebase Storage through the Firebase Admin SDK.
+Express backend using MongoDB through Mongoose. Uploaded files are stored in MongoDB GridFS and served through the API.
 
 ## Setup
 
@@ -10,20 +10,14 @@ npm install
 cp .env.example .env
 ```
 
-Then open `backend/.env` and add Firebase Admin credentials:
-- `FIREBASE_SERVICE_ACCOUNT_JSON` (preferred), or
-- `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY`, or
-- set `FIREBASE_SERVICE_ACCOUNT_KEY_PATH` to a local service account JSON file.
-
-Set `FIREBASE_DATABASE_URL` to your Firebase Realtime Database URL and `FIREBASE_STORAGE_BUCKET` to the Firebase Storage bucket name.
-
-For production on Render, add `FIREBASE_SERVICE_ACCOUNT_JSON` from Firebase Console → Project Settings → Service Accounts → Generate new private key.
+Then open `backend/.env` and set `MONGODB_URI` to your local or MongoDB Atlas connection string.
+Set `API_BASE_URL` to the public API URL when deploying so uploaded file links resolve correctly.
 
 ## Database
 
-Realtime Database paths used by the API include `products`, `services`, `reviews`, `contactMessages`, `quoteRequests`, `users`, `addresses`, `orders`, and `siteSettings/home`.
+The API uses MongoDB collections for products, services, reviews, contact messages, quote requests, users, addresses, orders, site settings, categories, banners, blog posts, and freelance requests.
 
-Uploaded images are stored in Firebase Storage. The API stores only Firebase download URLs in Realtime Database.
+Uploaded files use the `uploads` GridFS bucket. The API stores only `/api/files/:id` URLs in MongoDB.
 
 ## Run
 

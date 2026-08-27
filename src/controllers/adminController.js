@@ -23,7 +23,7 @@ import { listContactMessages, listQuoteRequests } from '../services/customerServ
 import { uploadSiteImage } from '../services/imageService.js'
 import { getSiteSettings, updateSiteSettings } from '../services/siteSettingsService.js'
 
-const MAX_SITE_HERO_IMAGES = 5
+const MAX_SITE_HERO_IMAGES = 3
 
 function normalizeHeroImages(settings = {}) {
   if (!Array.isArray(settings.heroImages)) return []
@@ -75,6 +75,21 @@ export async function postAdminSiteImages(request, response) {
   response.status(201).json({
     message: `${uploadedUrls.length} homepage image(s) uploaded successfully`,
     images: uploadedUrls,
+    settings,
+  })
+}
+
+export async function postAdminSiteLogo(request, response) {
+  if (!request.file) {
+    return response.status(400).json({ message: 'No logo file uploaded' })
+  }
+
+  const logoUrl = await uploadSiteImage(request.file, 'branding')
+  const settings = await updateSiteSettings({ logoUrl })
+
+  response.status(201).json({
+    message: 'Website logo uploaded successfully',
+    logoUrl,
     settings,
   })
 }

@@ -1,8 +1,12 @@
 import {
+  createFreelanceRequest,
+} from '../services/contentService.js'
+import {
   createContactMessage,
   createQuoteRequest,
   createReview,
   createUserAddress,
+  updateUserAddress,
   createUserOrder,
   deleteUserAddress,
   listContactMessages,
@@ -40,6 +44,11 @@ export async function postQuoteRequest(request, response) {
   response.status(201).json(quote)
 }
 
+export async function postFreelanceRequest(request, response) {
+  const requestRecord = await createFreelanceRequest(request.validated.body)
+  response.status(201).json(requestRecord)
+}
+
 export async function getQuoteRequests(_request, response) {
   response.json(await listQuoteRequests())
 }
@@ -66,6 +75,15 @@ export async function getUserAddresses(request, response) {
 export async function postUserAddress(request, response) {
   const address = await createUserAddress(request.validated.params.id, request.validated.body)
   response.status(201).json(address)
+}
+
+export async function patchUserAddress(request, response) {
+  const address = await updateUserAddress(
+    request.validated.params.id,
+    request.validated.params.addressId,
+    request.validated.body,
+  )
+  response.json(address)
 }
 
 export async function patchUserDefaultAddress(request, response) {

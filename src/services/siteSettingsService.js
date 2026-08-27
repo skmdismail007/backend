@@ -1,15 +1,18 @@
 import { collectionRef, mapDoc, updateDocument } from './realtimeDataService.js'
 import { deleteImagesByUrls } from './imageService.js'
 
-const MAX_SITE_HERO_IMAGES = 5
-const imageFields = ['heroImage', 'testimonialImageOne', 'testimonialImageTwo']
+const MAX_SITE_HERO_IMAGES = 3
+const imageFields = ['logoUrl', 'heroImage', 'testimonialImageOne', 'testimonialImageTwo']
 
 export const EMPTY_SITE_SETTINGS = {
+  logoUrl: '',
   heroEyebrow: '',
   heroTitle: '',
   heroCopy: '',
   heroImage: '',
   heroImages: [],
+  heroTitleSize: 68,
+  heroCopySize: 18,
   primaryCtaLabel: '',
   secondaryCtaLabel: '',
   featuredTitle: '',
@@ -26,6 +29,10 @@ export const EMPTY_SITE_SETTINGS = {
   contactPhone: '',
   contactAddress: '',
   businessHours: '',
+  contactServiceAreas: [],
+  freelanceHeroTitle: '',
+  freelanceHeroText: '',
+  freelanceHeroImage: '',
   productsHeroEyebrow: '',
   productsHeroTitle: '',
   productsHeroText: '',

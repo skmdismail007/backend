@@ -28,7 +28,7 @@ export const reviewCreateSchema = z.object({
     project: z.string().min(2),
     rating: z.coerce.number().int().min(1).max(5),
     image: z.string().optional(),
-    text: z.string().min(5),
+    text: z.string().min(5).max(100, 'Review must be 100 characters or fewer'),
   }),
 })
 
@@ -56,6 +56,18 @@ export const quoteCreateSchema = z.object({
       }),
     ),
     note: z.string().optional(),
+  }),
+})
+
+export const freelanceRequestCreateSchema = z.object({
+  body: z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    phone: z.string().min(8),
+    projectType: z.string().min(2),
+    projectDescription: z.string().min(5),
+    budget: z.string().min(1),
+    timeline: z.string().min(2),
   }),
 })
 
@@ -111,6 +123,14 @@ export const addressIdSchema = z.object({
     id: z.string().min(1),
     addressId: z.string().min(1),
   }),
+})
+
+export const addressUpdateSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+    addressId: z.string().min(1),
+  }),
+  body: addressCreateSchema.shape.body.partial(),
 })
 
 export const orderCreateSchema = z.object({

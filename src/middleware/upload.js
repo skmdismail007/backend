@@ -59,6 +59,12 @@ export const uploadSiteImages = createUploader({
   files: MAX_SITE_FILES,
 })
 
+export const uploadSiteLogo = createUploader({
+  allowedTypes: IMAGE_MIME_TYPES,
+  fileSize: MAX_IMAGE_SIZE,
+  files: 1,
+})
+
 export const uploadReviewImage = createUploader({
   allowedTypes: IMAGE_MIME_TYPES,
   fileSize: MAX_IMAGE_SIZE,

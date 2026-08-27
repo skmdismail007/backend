@@ -9,8 +9,6 @@ import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import apiRoutes from './routes/index.js'
 
-// Local `uploads` folder removed when using Firebase Storage only
-
 export function createApp() {
   const app = express()
 

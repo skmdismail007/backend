@@ -1,11 +1,12 @@
-import { realtimeDb, storageBucketName } from '../lib/firebase.js'
+import { getDatabaseStatus, getMongoDatabase } from '../config/database.js'
 
 export async function getHealth(_request, response) {
-  await realtimeDb.ref('_health').limitToFirst(1).once('value')
+  await getMongoDatabase().admin().ping()
   response.json({
     status: 'ok',
     service: 'akiwa-backend',
-    database: 'realtime-database',
-    storageBucket: storageBucketName,
+    database: 'mongodb',
+    databaseStatus: getDatabaseStatus(),
+    fileStorage: 'mongodb-gridfs',
   })
 }

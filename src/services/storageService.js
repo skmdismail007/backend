@@ -1,9 +1,10 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
-import { storage, storageBucketName } from '../lib/firebase.js'
+import mongoose from 'mongoose'
+import { env } from '../config/env.js'
+import { getMongoDatabase } from '../config/database.js'
 
 const DEFAULT_CACHE_CONTROL = 'public, max-age=31536000, immutable'
-const FIREBASE_DOWNLOAD_TOKEN_KEY = 'firebaseStorageDownloadTokens'
 
 const mimeExtensions = {
   'image/jpeg': '.jpg',
@@ -44,41 +45,45 @@ function hashBuffer(buffer) {
   return createHash('sha256').update(buffer).digest('hex')
 }
 
-function encodeStoragePath(path) {
-  return encodeURIComponent(path).replace(/%2F/g, '%2F')
-}
-
-export function getPublicDownloadUrl(path, token) {
-  if (!storageBucketName) {
-    throw Object.assign(new Error('Firebase Storage bucket is not configured. Set FIREBASE_STORAGE_BUCKET.'), {
-      statusCode: 500,
-    })
-  }
-  return `https://firebasestorage.googleapis.com/v0/b/${storageBucketName}/o/${encodeStoragePath(path)}?alt=media&token=${token}`
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
 function getBucket() {
-  if (!storageBucketName) {
-    throw Object.assign(new Error('Firebase Storage bucket is not configured. Set FIREBASE_STORAGE_BUCKET.'), {
-      statusCode: 500,
-    })
-  }
-  return storage.bucket(storageBucketName)
+  return new mongoose.mongo.GridFSBucket(getMongoDatabase(), {
+    bucketName: 'uploads',
+  })
 }
 
-async function ensureDownloadToken(file) {
-  const [metadata] = await file.getMetadata().catch(() => [{}])
-  const existingToken = metadata?.metadata?.[FIREBASE_DOWNLOAD_TOKEN_KEY]?.split(',')?.[0]
-  if (existingToken) return existingToken
+function toObjectId(id) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw Object.assign(new Error('File not found'), { statusCode: 404 })
+  }
 
-  const token = randomUUID()
-  await file.setMetadata({
-    metadata: {
-      ...(metadata.metadata || {}),
-      [FIREBASE_DOWNLOAD_TOKEN_KEY]: token,
-    },
+  return new mongoose.Types.ObjectId(id)
+}
+
+function getFileUrl(fileId) {
+  return `${env.apiBaseUrl}/files/${fileId}`
+}
+
+function fileRecordToUpload(fileRecord, fallback = {}) {
+  return {
+    url: getFileUrl(fileRecord._id.toString()),
+    storagePath: fileRecord.filename,
+    contentType: fileRecord.contentType || fileRecord.metadata?.contentType || fallback.contentType || 'application/octet-stream',
+    originalName: fileRecord.metadata?.originalName || fallback.originalName || fileRecord.filename,
+    size: fileRecord.length || fallback.size || 0,
+    sha256: fileRecord.metadata?.sha256 || fallback.sha256 || '',
+  }
+}
+
+async function writeBuffer(uploadStream, buffer) {
+  return new Promise((resolve, reject) => {
+    uploadStream.once('error', reject)
+    uploadStream.once('finish', () => resolve(uploadStream.id))
+    uploadStream.end(buffer)
   })
-  return token
 }
 
 export async function uploadFile(file, options = {}) {
@@ -100,28 +105,34 @@ export async function uploadFile(file, options = {}) {
   const pathParts = [folder, ownerId].filter(Boolean).map(cleanPathPart)
   const storagePath = [...pathParts, fileName].join('/')
   const bucket = getBucket()
-  const storedFile = bucket.file(storagePath)
-  const [exists] = await storedFile.exists()
+  const existingFile = deduplicate ? await bucket.find({ filename: storagePath }).next() : null
 
-  if (!exists) {
-    await storedFile.save(file.buffer, {
-      resumable: false,
-      metadata: {
-        cacheControl,
-        contentType: file.mimetype || 'application/octet-stream',
-        metadata: {
-          originalName: file.originalname || fileName,
-          sha256: hash,
-          [FIREBASE_DOWNLOAD_TOKEN_KEY]: randomUUID(),
-        },
-      },
+  if (existingFile) {
+    return fileRecordToUpload(existingFile, {
+      contentType: file.mimetype,
+      originalName: file.originalname || fileName,
+      size: file.size || file.buffer.length,
+      sha256: hash,
     })
   }
 
-  const token = await ensureDownloadToken(storedFile)
+  const uploadedId = await writeBuffer(
+    bucket.openUploadStream(storagePath, {
+      contentType: file.mimetype || 'application/octet-stream',
+      metadata: {
+        cacheControl,
+        folder: cleanPathPart(folder),
+        ownerId: ownerId ? cleanPathPart(ownerId) : '',
+        originalName: file.originalname || fileName,
+        sha256: hash,
+        storagePath,
+      },
+    }),
+    file.buffer,
+  )
 
   return {
-    url: getPublicDownloadUrl(storagePath, token),
+    url: getFileUrl(uploadedId.toString()),
     storagePath,
     contentType: file.mimetype || 'application/octet-stream',
     originalName: file.originalname || fileName,
@@ -130,22 +141,16 @@ export async function uploadFile(file, options = {}) {
   }
 }
 
-export function storagePathFromUrl(fileUrl) {
+export function fileIdFromUrl(fileUrl) {
   if (!fileUrl) return ''
 
-  try {
-    const url = new URL(fileUrl)
-    const firebasePathMatch = url.pathname.match(/^\/v0\/b\/([^/]+)\/o\/(.+)$/)
-    if (firebasePathMatch?.[1] && firebasePathMatch?.[2]) {
-      const bucketName = decodeURIComponent(firebasePathMatch[1])
-      if (bucketName !== storageBucketName) return ''
-      return decodeURIComponent(firebasePathMatch[2])
-    }
+  const rawValue = String(fileUrl).trim()
+  if (mongoose.Types.ObjectId.isValid(rawValue)) return rawValue
 
-    const pathname = decodeURIComponent(url.pathname)
-    const bucketName = getBucket().name
-    const bucketPrefix = `/${bucketName}/`
-    if (pathname.startsWith(bucketPrefix)) return pathname.slice(bucketPrefix.length)
+  try {
+    const url = new URL(rawValue, env.apiBaseUrl)
+    const fileMatch = decodeURIComponent(url.pathname).match(/\/(?:api\/)?files\/([a-f0-9]{24})(?:\/)?$/i)
+    if (fileMatch?.[1]) return fileMatch[1]
   } catch {
     return ''
   }
@@ -154,10 +159,16 @@ export function storagePathFromUrl(fileUrl) {
 }
 
 export async function deleteFileByUrl(fileUrl) {
-  const storagePath = storagePathFromUrl(fileUrl)
-  if (!storagePath) return false
-  await getBucket().file(storagePath).delete({ ignoreNotFound: true })
-  return true
+  const fileId = fileIdFromUrl(fileUrl)
+  if (!fileId) return false
+
+  try {
+    await getBucket().delete(toObjectId(fileId))
+    return true
+  } catch (error) {
+    if (/FileNotFound|not found/i.test(error.message)) return false
+    throw error
+  }
 }
 
 export async function deleteFilesByUrls(urls = []) {
@@ -167,7 +178,22 @@ export async function deleteFilesByUrls(urls = []) {
 
 export async function deleteFolder(prefix) {
   if (!prefix) return 0
-  const [files] = await getBucket().getFiles({ prefix })
-  await Promise.all(files.map((file) => file.delete({ ignoreNotFound: true })))
+  const bucket = getBucket()
+  const files = await bucket.find({
+    filename: { $regex: `^${escapeRegex(prefix)}` },
+  }).toArray()
+  await Promise.all(files.map((file) => bucket.delete(file._id)))
   return files.length
+}
+
+export async function getStoredFile(id) {
+  const objectId = toObjectId(id)
+  const bucket = getBucket()
+  const file = await bucket.find({ _id: objectId }).next()
+  if (!file) throw Object.assign(new Error('File not found'), { statusCode: 404 })
+
+  return {
+    file,
+    stream: bucket.openDownloadStream(objectId),
+  }
 }

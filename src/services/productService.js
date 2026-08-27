@@ -8,6 +8,7 @@ import {
   sortNewest,
 } from './realtimeDataService.js'
 import { deleteImagesByUrls } from './imageService.js'
+import { env } from '../config/env.js'
 
 const MAX_PRODUCT_IMAGES = 10
 
@@ -46,6 +47,12 @@ function normalizeProductPayload(data, { partial = false } = {}) {
   }
   if (!partial || Object.prototype.hasOwnProperty.call(data, 'price')) {
     normalized.price = Number(data.price || 0)
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'oldPrice')) {
+    normalized.oldPrice = data.oldPrice === '' || data.oldPrice == null ? null : Number(data.oldPrice)
+  }
+  if (!partial || Object.prototype.hasOwnProperty.call(data, 'offerExpiresAt')) {
+    normalized.offerExpiresAt = data.offerExpiresAt || null
   }
   if (!partial || Object.prototype.hasOwnProperty.call(data, 'badge')) {
     normalized.badge = data.badge?.trim() || ''
@@ -112,7 +119,13 @@ export function getProductById(id) {
 
 export async function createProduct(data) {
   const normalized = normalizeProductPayload(data)
-  return createDocument('products', normalized, data.id)
+  if (env.nodeEnv !== 'production') console.debug('[backend] creating product in MongoDB', {
+    name: normalized.name,
+    category: normalized.category,
+  })
+  const product = await createDocument('products', normalized, data.id)
+  if (env.nodeEnv !== 'production') console.debug('[backend] MongoDB product result', { id: product.id })
+  return product
 }
 
 export async function updateProduct(id, data) {

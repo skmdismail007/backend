@@ -18,6 +18,7 @@ import {
   patchAdminSiteSettings,
   patchAdminUser,
   postAdminSiteImages,
+  postAdminSiteLogo,
   removeAdminAddress,
   removeAdminMessage,
   removeAdminOrder,
@@ -26,7 +27,7 @@ import {
   removeAdminUser,
 } from '../controllers/adminController.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
-import { handleUploadError, uploadSiteImages, validateSiteImageCount } from '../middleware/upload.js'
+import { handleUploadError, uploadSiteImages, uploadSiteLogo, validateSiteImageCount } from '../middleware/upload.js'
 import { validate } from '../middleware/validate.js'
 import {
   adminIdSchema,
@@ -49,6 +50,12 @@ router.post(
   uploadSiteImages.array('images', 5),
   validateSiteImageCount,
   asyncHandler(postAdminSiteImages),
+  handleUploadError,
+)
+router.post(
+  '/site-settings/logo',
+  uploadSiteLogo.single('logo'),
+  asyncHandler(postAdminSiteLogo),
   handleUploadError,
 )
 router.get('/reviews', asyncHandler(getAdminReviews))

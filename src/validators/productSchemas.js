@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
 const imageReferenceSchema = z.string().trim().min(1)
+const optionalMoneySchema = z.preprocess(
+  (value) => value === '' || value === null ? undefined : value,
+  z.coerce.number().nonnegative().optional(),
+)
+const offerExpirySchema = z.union([z.string().datetime(), z.literal('')]).optional()
 const queryBooleanSchema = z.preprocess(
   (value) => {
     if (value === undefined) return undefined
@@ -30,6 +35,8 @@ export const productCreateSchema = z.object({
     name: z.string().min(2),
     category: z.string().min(2),
     price: z.coerce.number().nonnegative(),
+    oldPrice: optionalMoneySchema,
+    offerExpiresAt: offerExpirySchema,
     badge: z.string().optional(),
     image: z.string().optional(),
     images: z.array(imageReferenceSchema).max(10).default([]),

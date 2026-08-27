@@ -22,7 +22,8 @@ const paymentDetailsSchema = z.object({
   notes: z.string().max(500).optional(),
 })
 const siteTextSchema = z.string().max(2000)
-const siteImageListSchema = z.array(z.string().trim().min(1).max(2000)).max(5)
+const siteImageListSchema = z.array(z.string().trim().min(1).max(2000)).max(3)
+const siteListSchema = z.array(z.string().trim().min(1).max(200)).max(20)
 
 export const adminIdSchema = z.object({
   params: z.object({
@@ -101,15 +102,26 @@ export const adminOrderUpdateSchema = z.object({
 
 export const adminSiteSettingsSchema = z.object({
   body: z.object({
+    logoUrl: siteTextSchema.optional(),
     heroEyebrow: siteTextSchema.optional(),
     heroTitle: siteTextSchema.optional(),
     heroCopy: siteTextSchema.optional(),
     heroImage: siteTextSchema.optional(),
     heroImages: siteImageListSchema.optional(),
+    heroTitleSize: z.coerce.number().min(32).max(80).optional(),
+    heroCopySize: z.coerce.number().min(14).max(28).optional(),
     primaryCtaLabel: siteTextSchema.optional(),
     secondaryCtaLabel: siteTextSchema.optional(),
     featuredTitle: siteTextSchema.optional(),
     servicesTitle: siteTextSchema.optional(),
+    productsHeroEyebrow: siteTextSchema.optional(),
+    productsHeroTitle: siteTextSchema.optional(),
+    productsHeroText: siteTextSchema.optional(),
+    productsHeroImage: siteTextSchema.optional(),
+    servicesHeroEyebrow: siteTextSchema.optional(),
+    servicesHeroTitle: siteTextSchema.optional(),
+    servicesHeroText: siteTextSchema.optional(),
+    servicesHeroImage: siteTextSchema.optional(),
     testimonialEyebrow: siteTextSchema.optional(),
     testimonialTitle: siteTextSchema.optional(),
     testimonialText: siteTextSchema.optional(),
@@ -120,5 +132,12 @@ export const adminSiteSettingsSchema = z.object({
     contactText: siteTextSchema.optional(),
     contactEmail: z.string().email().optional().or(z.literal('')),
     contactPhone: siteTextSchema.optional(),
+    contactServiceAreas: siteListSchema.optional(),
+    contactHeroTitle: siteTextSchema.optional(),
+    contactHeroText: siteTextSchema.optional(),
+    freelanceHeroTitle: siteTextSchema.optional(),
+    freelanceHeroText: siteTextSchema.optional(),
+    freelanceHeroImage: siteTextSchema.optional(),
+    footerDescription: siteTextSchema.optional(),
   }),
 })
