@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { getDatabaseStatus } from '../config/database.js'
 import { getModelForCollection } from '../models/index.js'
 
 export const FieldValue = {
@@ -11,6 +12,18 @@ export function now() {
 
 export function notFound(message = 'Record not found') {
   return Object.assign(new Error(message), { statusCode: 404 })
+}
+
+export function databaseUnavailable(message = 'Database is not connected. Add Render outbound IPs to MongoDB Atlas and verify MONGODB_URI.') {
+  return Object.assign(new Error(message), {
+    statusCode: 503,
+    code: 'DATABASE_UNAVAILABLE',
+    databaseStatus: getDatabaseStatus(),
+  })
+}
+
+export function ensureDatabaseReady() {
+  if (getDatabaseStatus() !== 'connected') throw databaseUnavailable()
 }
 
 export function mapRealtimeValue(value) {
@@ -148,11 +161,13 @@ class MongoDocumentRef {
   }
 
   async get() {
+    ensureDatabaseReady()
     const record = await this.model().findOne({ _id: this.id }).lean()
     return new MongoDocumentSnapshot(this.collectionName, this.id, record)
   }
 
   async set(data, options = {}) {
+    ensureDatabaseReady()
     const record = stripUndefined(data)
     const document = {
       ...record,
@@ -176,6 +191,7 @@ class MongoDocumentRef {
   }
 
   async update(updates) {
+    ensureDatabaseReady()
     const record = stripUndefined(updates)
     await this.model().updateOne(
       { _id: this.id },
@@ -185,6 +201,7 @@ class MongoDocumentRef {
   }
 
   async delete() {
+    ensureDatabaseReady()
     await this.model().deleteOne({ _id: this.id })
   }
 }
@@ -230,6 +247,7 @@ class MongoCollectionQuery {
   }
 
   async get() {
+    ensureDatabaseReady()
     const query = this.model().find(buildMongoQuery(this.filters)).lean()
 
     if (this.order) {
@@ -312,6 +330,7 @@ export async function deleteDocument(collectionName, id) {
 }
 
 export async function countDocuments(collectionName, filters = []) {
+  ensureDatabaseReady()
   return getModelForCollection(collectionName).countDocuments(buildMongoQuery(filters))
 }
 

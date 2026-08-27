@@ -22,6 +22,15 @@ export function errorHandler(error, _request, response, next) {
     return
   }
 
+  if (error.statusCode === 503 || error.code === 'DATABASE_UNAVAILABLE') {
+    response.status(503).json({
+      message: error.message || 'Database is temporarily unavailable',
+      code: error.code || 'DATABASE_UNAVAILABLE',
+      databaseStatus: error.databaseStatus,
+    })
+    return
+  }
+
   console.error(error)
 
   response.status(error.statusCode || 500).json({
