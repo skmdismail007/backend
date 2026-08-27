@@ -12,6 +12,9 @@ export async function connectDatabase() {
 
   connectionPromise ||= mongoose.connect(env.mongodbUri, {
     serverSelectionTimeoutMS: env.mongodbConnectionTimeoutMs,
+  }).catch((error) => {
+    connectionPromise = undefined
+    throw error
   })
 
   await connectionPromise

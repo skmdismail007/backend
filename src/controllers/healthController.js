@@ -1,12 +1,24 @@
 import { getDatabaseStatus, getMongoDatabase } from '../config/database.js'
 
 export async function getHealth(_request, response) {
-  await getMongoDatabase().admin().ping()
+  const databaseStatus = getDatabaseStatus()
+  let databasePing = 'unavailable'
+
+  if (databaseStatus === 'connected') {
+    try {
+      await getMongoDatabase().admin().ping()
+      databasePing = 'ok'
+    } catch (error) {
+      console.error('MongoDB health check failed:', error.message)
+    }
+  }
+
   response.json({
-    status: 'ok',
+    status: databasePing === 'ok' ? 'ok' : 'degraded',
     service: 'akiwa-backend',
     database: 'mongodb',
-    databaseStatus: getDatabaseStatus(),
+    databaseStatus,
+    databasePing,
     fileStorage: 'mongodb-gridfs',
   })
 }

@@ -18,6 +18,7 @@ const optionalString = z.preprocess(emptyStringToUndefined, z.string().trim().op
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  HOST: z.preprocess(emptyStringToUndefined, z.string().trim().default('0.0.0.0')),
   PORT: z.coerce.number().int().positive().default(4000),
   CORS_ORIGIN: z.string().default('http://localhost:5173,http://localhost:5174'),
   MONGODB_URI: optionalString,
@@ -37,6 +38,7 @@ const apiBaseUrl = (parsed.data.API_BASE_URL || `http://localhost:${parsed.data.
 
 export const env = {
   nodeEnv: parsed.data.NODE_ENV,
+  host: parsed.data.HOST,
   port: parsed.data.PORT,
   corsOrigin: parsed.data.CORS_ORIGIN,
   corsOrigins: [

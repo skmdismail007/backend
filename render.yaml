@@ -12,8 +12,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: HOST
+        value: 0.0.0.0
       - key: PORT
-        value: 4000
+        value: 10000
       - key: CORS_ORIGIN
         value: https://your-frontend.onrender.com,http://localhost:5173,http://localhost:5174
       - key: MONGODB_URI
