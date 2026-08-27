@@ -17,7 +17,7 @@ services:
       - key: PORT
         value: 10000
       - key: CORS_ORIGIN
-        value: https://your-frontend.onrender.com,http://localhost:5173,http://localhost:5174
+        value: "*"
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_CONNECTION_TIMEOUT_MS
