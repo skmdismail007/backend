@@ -6,10 +6,8 @@ import { z } from 'zod'
 const configDir = dirname(fileURLToPath(import.meta.url))
 const backendRoot = resolve(configDir, '../..')
 
-if (process.env.NODE_ENV !== 'production') {
-  loadEnv({ path: resolve(backendRoot, '.env') })
-  loadEnv()
-}
+loadEnv({ path: resolve(backendRoot, '.env') })
+loadEnv()
 
 const emptyStringToUndefined = (value) => {
   if (typeof value === 'string' && value.trim() === '') return undefined
@@ -33,11 +31,6 @@ const parsed = envSchema.safeParse(process.env)
 if (!parsed.success) {
   console.error('Invalid backend environment variables:')
   console.error(parsed.error.flatten().fieldErrors)
-  process.exit(1)
-}
-
-if (parsed.data.NODE_ENV === 'production' && !parsed.data.MONGODB_URI) {
-  console.error('MONGODB_URI is required in the Render production environment.')
   process.exit(1)
 }
 

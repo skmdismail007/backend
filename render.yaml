@@ -4,8 +4,8 @@
 
 services:
   - type: web
-    name: backend
-    runtime: node
+    name: nexora-backend
+    env: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
@@ -14,6 +14,8 @@ services:
         value: production
       - key: HOST
         value: 0.0.0.0
+      - key: PORT
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: MONGODB_URI
