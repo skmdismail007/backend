@@ -1,10 +1,10 @@
 # Render Deployment Configuration
 # Save as: render.yaml in root of backend folder
-# This helps automate deployment settings
+# This helps automate deployment settings for the existing Render service.
 
 services:
   - type: web
-    name: nexora-backend
+    name: backend
     env: node
     plan: free
     buildCommand: npm install
