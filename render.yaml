@@ -1,11 +1,11 @@
 # Render Deployment Configuration
 # Save as: render.yaml in root of backend folder
-# This helps automate deployment settings for the existing Render service.
+# This helps automate deployment settings
 
 services:
   - type: web
-    name: backend
-    runtime: node
+    name: nexora-backend
+    env: node
     plan: free
     buildCommand: npm install
     startCommand: npm start
@@ -14,6 +14,8 @@ services:
         value: production
       - key: HOST
         value: 0.0.0.0
+      - key: PORT
+        value: 10000
       - key: CORS_ORIGIN
         value: "*"
       - key: MONGODB_URI
