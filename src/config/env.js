@@ -6,8 +6,10 @@ import { z } from 'zod'
 const configDir = dirname(fileURLToPath(import.meta.url))
 const backendRoot = resolve(configDir, '../..')
 
-loadEnv({ path: resolve(backendRoot, '.env') })
-loadEnv()
+if (process.env.NODE_ENV !== 'production') {
+  loadEnv({ path: resolve(backendRoot, '.env'), quiet: true })
+  loadEnv({ quiet: true })
+}
 
 const emptyStringToUndefined = (value) => {
   if (typeof value === 'string' && value.trim() === '') return undefined

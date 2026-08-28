@@ -1,19 +1,25 @@
-import 'dotenv/config'
 import { createApp } from './src/app.js'
-import { connectDatabase, disconnectDatabase } from './src/config/database.js'
+import { connectDatabase, disconnectDatabase, getMongoConnectionDiagnostics } from './src/config/database.js'
 import { env } from './src/config/env.js'
 
 const databaseRetryDelayMs = 15_000
 let databaseRetryTimeout
 let isShuttingDown = false
+let databaseAttempt = 0
 
 function connectDatabaseWithRetry() {
+  databaseAttempt += 1
+
   connectDatabase()
     .then(() => {
-      console.log('MongoDB connected.')
+      console.log('MongoDB connected.', getMongoConnectionDiagnostics())
     })
     .catch((error) => {
-      console.error('MongoDB connection failed:', error.message)
+      console.error('MongoDB connection failed:', {
+        attempt: databaseAttempt,
+        retryInMs: isShuttingDown ? null : databaseRetryDelayMs,
+        ...getMongoConnectionDiagnostics(error),
+      })
 
       if (!isShuttingDown) {
         databaseRetryTimeout = setTimeout(connectDatabaseWithRetry, databaseRetryDelayMs)

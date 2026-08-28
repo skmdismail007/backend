@@ -1,7 +1,11 @@
-sBc45gWUOaXqHdww --pssword 
-firojabibi7384_db_user--- username
+# MongoDB Atlas setup
 
-mongodb+srv://firojabibi7384_db_user:sBc45gWUOaXqHdww@cluster0.5e1dms4.mongodb.net/
+Do not commit the real MongoDB username, password, or full connection string.
 
+Use this shape for Render's `MONGODB_URI` secret:
 
-mongodb+srv://firojabibi7384_db_user:sBc45gWUOaXqHdww@cluster0.5e1dms4.mongodb.net/?appName=Cluster0
+```text
+mongodb+srv://<db-user>:<url-encoded-password>@<cluster-host>/akiwa?retryWrites=true&w=majority
+```
+
+The `/akiwa` database name is required. If the password contains reserved URI characters such as `@`, `#`, `/`, `?`, `:`, `&`, or `%`, URL-encode it before saving the value in Render.
