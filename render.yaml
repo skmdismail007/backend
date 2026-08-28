@@ -14,6 +14,9 @@ services:
       - key: HOST
         value: 0.0.0.0
 
+      - key: CORS_ORIGIN
+        value: "*"
+
       - key: MONGODB_URI
         sync: false
 
@@ -22,6 +25,3 @@ services:
 
       - key: API_BASE_URL
         value: https://backend-3mp3.onrender.com/api
-
-      - key: CORS_ORIGIN
-        sync: false
