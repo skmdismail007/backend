@@ -6,8 +6,11 @@ import { z } from 'zod'
 const configDir = dirname(fileURLToPath(import.meta.url))
 const backendRoot = resolve(configDir, '../..')
 
-// Load .env for local development/test.
-// Render production uses process.env directly.
+// Local development/test:
+// backend/.env থেকে environment variables load করবে.
+//
+// Production/Render:
+// Render-এর Environment Variables সরাসরি process.env থেকে আসবে.
 if (process.env.NODE_ENV !== 'production') {
   loadEnv({
     path: resolve(backendRoot, '.env'),
@@ -40,9 +43,8 @@ const envSchema = z.object({
   HOST: z
     .preprocess(
       emptyStringToUndefined,
-      z.string().trim(),
-    )
-    .default('0.0.0.0'),
+      z.string().trim().default('0.0.0.0'),
+    ),
 
   PORT: z
     .coerce
