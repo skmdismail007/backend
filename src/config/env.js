@@ -6,8 +6,8 @@ import { z } from 'zod'
 const configDir = dirname(fileURLToPath(import.meta.url))
 const backendRoot = resolve(configDir, '../..')
 
-// Local development/test এ .env load করবে.
-// Render production এ Render Environment Variables ব্যবহার করবে.
+// Load .env for local development/test.
+// Render production uses process.env directly.
 if (process.env.NODE_ENV !== 'production') {
   loadEnv({
     path: resolve(backendRoot, '.env'),
@@ -37,10 +37,12 @@ const envSchema = z.object({
     .enum(['development', 'test', 'production'])
     .default('development'),
 
-  HOST: z.preprocess(
-    emptyStringToUndefined,
-    z.string().trim().default('0.0.0.0'),
-  ),
+  HOST: z
+    .preprocess(
+      emptyStringToUndefined,
+      z.string().trim(),
+    )
+    .default('0.0.0.0'),
 
   PORT: z
     .coerce
@@ -77,21 +79,15 @@ if (!parsed.success) {
 
 const data = parsed.data
 
-// MongoDB is required in production.
-if (data.NODE_ENV === 'production' && !data.MONGODB_URI) {
-  console.error(
-    'MONGODB_URI is missing from Render Environment Variables.',
-  )
-  console.error(
-    'Add MONGODB_URI in Render Dashboard → Environment.',
-  )
-  process.exit(1)
-}
-
 const apiBaseUrl = (
   data.API_BASE_URL ||
   `http://localhost:${data.PORT}/api`
 ).replace(/\/+$/, '')
+
+const configuredCorsOrigins = data.CORS_ORIGIN
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 
 const localOrigins = [
   'http://localhost:5173',
@@ -103,11 +99,6 @@ const localOrigins = [
   'http://localhost:4173',
   'http://127.0.0.1:4173',
 ]
-
-const configuredCorsOrigins = data.CORS_ORIGIN
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean)
 
 export const env = {
   nodeEnv: data.NODE_ENV,
