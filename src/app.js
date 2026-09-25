@@ -20,6 +20,7 @@ function isAllowedOrigin(origin) {
       hostname === 'dynamicworld.online' ||
       hostname.endsWith('.dynamicworld.online') ||
       hostname.endsWith('.onrender.com') ||
+      hostname.endsWith('.netlify.app') ||
       hostname === 'localhost' ||
       hostname === '127.0.0.1'
     ) {
