@@ -38,7 +38,11 @@ if (!parsed.success) {
 const data = parsed.data
 const apiBaseUrl = (data.API_BASE_URL || `http://localhost:${data.PORT}/api`).replace(/\/+$/, '')
 const configuredCorsOrigins = data.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-const localOrigins = [
+const defaultOrigins = [
+  'https://dynamicworld.online',
+  'http://dynamicworld.online',
+  'https://www.dynamicworld.online',
+  'http://www.dynamicworld.online',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
@@ -52,7 +56,7 @@ export const env = {
   host: data.HOST,
   port: data.PORT,
   corsOrigin: data.CORS_ORIGIN,
-  corsOrigins: [...new Set([...configuredCorsOrigins, ...localOrigins])],
+  corsOrigins: [...new Set([...configuredCorsOrigins, ...defaultOrigins])],
   mysql: {
     host: data.MYSQL_HOST,
     port: data.MYSQL_PORT,

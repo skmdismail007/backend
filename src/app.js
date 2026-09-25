@@ -9,13 +9,36 @@ import { errorHandler } from './middleware/errorHandler.js'
 import { notFoundHandler } from './middleware/notFoundHandler.js'
 import apiRoutes from './routes/index.js'
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true
+  if (env.corsOrigins.includes('*')) return true
+  if (env.corsOrigins.includes(origin)) return true
+
+  try {
+    const { hostname } = new URL(origin)
+    if (
+      hostname === 'dynamicworld.online' ||
+      hostname.endsWith('.dynamicworld.online') ||
+      hostname.endsWith('.onrender.com') ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1'
+    ) {
+      return true
+    }
+  } catch {
+    return false
+  }
+
+  return false
+}
+
 export function createApp() {
   const app = express()
 
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }))
   app.use(cors({
     origin(origin, callback) {
-      if (!origin || env.corsOrigins.includes('*') || env.corsOrigins.includes(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true)
         return
       }
