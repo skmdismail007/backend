@@ -14,10 +14,22 @@ services:
       - key: HOST
         value: 0.0.0.0
 
-      - key: MONGODB_URI
+      - key: MYSQL_HOST
+        value: calcium.scnservers.net
+
+      - key: MYSQL_PORT
+        value: "3306"
+
+      - key: MYSQL_DATABASE
+        value: dynamicw_dynamicworld
+
+      - key: MYSQL_USER
+        value: dynamicw_dynamicworlddata
+
+      - key: MYSQL_PASSWORD
         sync: false
 
-      - key: MONGODB_CONNECTION_TIMEOUT_MS
+      - key: MYSQL_CONNECTION_TIMEOUT_MS
         value: "10000"
 
       - key: API_BASE_URL

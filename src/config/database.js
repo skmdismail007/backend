@@ -1,233 +1,139 @@
-import mongoose from 'mongoose'
+import mysql from 'mysql2/promise'
 import { env } from './env.js'
 
-mongoose.set('bufferCommands', false)
-mongoose.set('bufferTimeoutMS', env.mongodbConnectionTimeoutMs)
-
+let pool
 let connectionPromise
+let databaseStatus = 'disconnected'
 let lastConnectionAttemptAt = null
 let lastSuccessfulConnectionAt = null
 let lastConnectionError = null
-let hasLoggedMongoConfig = false
 
-const requiredDatabaseName = 'akiwa'
-
-function safeDecode(value) {
-  try {
-    return decodeURIComponent(value)
-  } catch {
-    return value
-  }
-}
-
-function redactMongoSecrets(value) {
-  if (!value) return value
-
-  let redacted = String(value)
-
-  if (env.mongodbUri) {
-    redacted = redacted.split(env.mongodbUri).join('[redacted MongoDB URI]')
-
-    try {
-      const parsed = new URL(env.mongodbUri)
-      const credentials = [parsed.username, parsed.password, safeDecode(parsed.username), safeDecode(parsed.password)]
-        .filter(Boolean)
-
-      credentials.forEach((credential) => {
-        redacted = redacted.split(credential).join('[redacted]')
-      })
-    } catch {
-      // Invalid URI errors are handled separately; keep redaction best-effort.
-    }
-  }
-
-  return redacted
-    .replace(/mongodb(?:\+srv)?:\/\/[^\s"')]+/gi, '[redacted MongoDB URI]')
-    .slice(0, 1400)
-}
-
-function getMongoUriSummary(uri) {
-  const summary = {
-    present: Boolean(uri),
-    protocol: null,
-    host: null,
-    database: null,
-    usernamePresent: false,
-    passwordPresent: false,
-    options: [],
-  }
-
-  if (!uri) return summary
-
-  const parsed = new URL(uri)
-  summary.protocol = parsed.protocol.replace(/:$/, '')
-  summary.host = parsed.host
-  summary.database = safeDecode(parsed.pathname.replace(/^\/+/, '')).split('/')[0] || null
-  summary.usernamePresent = Boolean(parsed.username)
-  summary.passwordPresent = Boolean(parsed.password)
-  summary.options = [...parsed.searchParams.keys()].sort()
-
-  return summary
-}
-
-function validateMongoUri() {
-  if (!env.mongodbUri) {
-    throw Object.assign(new Error('MONGODB_URI is missing from the runtime environment.'), {
-      code: 'MONGODB_URI_MISSING',
+export function getDatabasePool() {
+  if (!pool) {
+    pool = mysql.createPool({
+      host: env.mysql.host,
+      port: env.mysql.port,
+      database: env.mysql.database,
+      user: env.mysql.user,
+      password: env.mysql.password,
+      waitForConnections: true,
+      connectionLimit: env.mysql.connectionLimit,
+      queueLimit: 0,
+      connectTimeout: env.mysql.connectionTimeoutMs,
+      enableKeepAlive: true,
     })
   }
-
-  let summary
-  try {
-    summary = getMongoUriSummary(env.mongodbUri)
-  } catch (error) {
-    throw Object.assign(new Error(`MONGODB_URI is not a valid URI: ${error.message}`), {
-      code: 'MONGODB_URI_INVALID',
-    })
-  }
-
-  if (!['mongodb', 'mongodb+srv'].includes(summary.protocol)) {
-    throw Object.assign(new Error('MONGODB_URI must start with mongodb:// or mongodb+srv://.'), {
-      code: 'MONGODB_URI_INVALID_PROTOCOL',
-    })
-  }
-
-  if (!summary.host) {
-    throw Object.assign(new Error('MONGODB_URI must include a MongoDB host.'), {
-      code: 'MONGODB_URI_MISSING_HOST',
-    })
-  }
-
-  if (summary.database !== requiredDatabaseName) {
-    throw Object.assign(new Error(`MONGODB_URI must include /${requiredDatabaseName} as the database name.`), {
-      code: 'MONGODB_URI_INVALID_DATABASE',
-    })
-  }
-
-  if (env.nodeEnv === 'production' && (!summary.usernamePresent || !summary.passwordPresent)) {
-    throw Object.assign(new Error('Production MONGODB_URI must include Atlas database user credentials.'), {
-      code: 'MONGODB_URI_MISSING_CREDENTIALS',
-    })
-  }
-
-  if (!hasLoggedMongoConfig) {
-    console.info('MongoDB configuration:', {
-      ...summary,
-      timeoutMs: env.mongodbConnectionTimeoutMs,
-    })
-    hasLoggedMongoConfig = true
-  }
-
-  return summary
-}
-
-function classifyMongoError(error) {
-  const message = `${error?.message || ''} ${error?.reason?.message || ''}`.toLowerCase()
-  const code = String(error?.code || '')
-
-  if (code.startsWith('MONGODB_URI_')) return 'invalid-configuration'
-  if (/authentication failed|bad auth|auth failed|code 18|code 8000/.test(message) || ['18', '8000'].includes(code)) {
-    return 'authentication-failed'
-  }
-  if (/not authorized|unauthorized|requires authentication/.test(message)) return 'database-user-permission'
-  if (/whitelist|access list|ip address|network access/.test(message)) return 'atlas-network-access-denied'
-  if (/querysrv|enotfound|eai_again|dns/.test(message)) return 'dns-resolution-failed'
-  if (/tls|ssl|certificate|cert/.test(message)) return 'tls-error'
-  if (/timed out|timeout|server selection|econnrefused|econnreset|enetunreach|no route|topology/.test(message)) {
-    return 'connection-timeout'
-  }
-
-  return 'mongodb-connection-error'
-}
-
-function serializeMongoError(error) {
-  return {
-    category: classifyMongoError(error),
-    name: error?.name,
-    code: error?.code,
-    codeName: error?.codeName,
-    message: redactMongoSecrets(error?.message || String(error)),
-    reason: redactMongoSecrets(error?.reason?.message),
-  }
-}
-
-async function resetFailedConnection() {
-  connectionPromise = undefined
-
-  if (mongoose.connection.readyState === 0) return
-
-  try {
-    await mongoose.disconnect()
-  } catch (error) {
-    console.warn('MongoDB disconnect after failed connection failed:', redactMongoSecrets(error.message))
-  }
+  return pool
 }
 
 export async function connectDatabase() {
-  if (mongoose.connection.readyState === 1) return mongoose.connection
+  if (databaseStatus === 'connected') return getDatabasePool()
+  if (connectionPromise) return connectionPromise
 
-  validateMongoUri()
-
+  databaseStatus = 'connecting'
   lastConnectionAttemptAt = new Date().toISOString()
+  connectionPromise = getDatabasePool().query('SELECT 1 AS ok')
+    .then(async () => {
+      await getDatabasePool().query(`
+        CREATE TABLE IF NOT EXISTS app_records (
+          collection_name VARCHAR(64) NOT NULL,
+          id VARCHAR(191) NOT NULL,
+          data LONGTEXT NOT NULL,
+          created_at DATETIME(3) NOT NULL,
+          updated_at DATETIME(3) NOT NULL,
+          PRIMARY KEY (collection_name, id),
+          KEY app_records_created_idx (collection_name, created_at),
+          CONSTRAINT app_records_json CHECK (JSON_VALID(data))
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `)
+      await getDatabasePool().query(`
+        CREATE TABLE IF NOT EXISTS uploads (
+          id CHAR(24) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+          filename VARCHAR(255) NOT NULL,
+          content_type VARCHAR(150) NOT NULL,
+          original_name VARCHAR(255) NOT NULL,
+          size BIGINT UNSIGNED NOT NULL,
+          sha256 CHAR(64) NOT NULL,
+          cache_control VARCHAR(255) NOT NULL,
+          metadata LONGTEXT NOT NULL,
+          content LONGBLOB NOT NULL,
+          created_at DATETIME(3) NOT NULL,
+          PRIMARY KEY (id),
+          UNIQUE KEY uploads_filename_idx (filename),
+          KEY uploads_sha_idx (sha256),
+          CONSTRAINT uploads_metadata_json CHECK (JSON_VALID(metadata))
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `)
+      return pool
+    })
+    .then(() => {
+      databaseStatus = 'connected'
+      lastSuccessfulConnectionAt = new Date().toISOString()
+      lastConnectionError = null
+      return pool
+    })
+    .catch((error) => {
+      databaseStatus = 'disconnected'
+      lastConnectionError = {
+        code: error?.code,
+        message: error?.message,
+      }
+      throw error
+    })
+    .finally(() => {
+      connectionPromise = undefined
+    })
 
-  connectionPromise ||= mongoose.connect(env.mongodbUri, {
-    serverSelectionTimeoutMS: env.mongodbConnectionTimeoutMs,
-    connectTimeoutMS: env.mongodbConnectionTimeoutMs,
-    heartbeatFrequencyMS: 10_000,
-    family: 4,
-    maxPoolSize: 10,
-  })
-
-  try {
-    await connectionPromise
-    lastConnectionError = null
-    lastSuccessfulConnectionAt = new Date().toISOString()
-  } catch (error) {
-    lastConnectionError = serializeMongoError(error)
-    await resetFailedConnection()
-    throw error
-  }
-
-  return mongoose.connection
+  return connectionPromise
 }
 
 export async function disconnectDatabase() {
   connectionPromise = undefined
-  await mongoose.connection.close(false)
+  if (!pool) {
+    databaseStatus = 'disconnected'
+    return
+  }
+  await pool.end()
+  pool = undefined
+  databaseStatus = 'disconnected'
 }
 
 export function getDatabaseStatus() {
-  const states = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting',
-  }
-
-  return states[mongoose.connection.readyState] || 'unknown'
+  return databaseStatus
 }
 
-export function getMongoConnectionDiagnostics(error = null) {
+export function getDatabaseDiagnostics(error = null) {
   return {
-    readyState: mongoose.connection.readyState,
-    databaseStatus: getDatabaseStatus(),
-    uri: (() => {
-      try {
-        return getMongoUriSummary(env.mongodbUri)
-      } catch {
-        return { present: Boolean(env.mongodbUri), invalid: true }
-      }
-    })(),
+    databaseStatus,
+    host: env.mysql.host,
+    port: env.mysql.port,
+    database: env.mysql.database,
     lastConnectionAttemptAt,
     lastSuccessfulConnectionAt,
-    lastError: error ? serializeMongoError(error) : lastConnectionError,
+    lastError: error
+      ? { code: error.code, message: error.message }
+      : lastConnectionError,
   }
 }
 
-export function getMongoDatabase() {
-  if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
-    throw Object.assign(new Error('MongoDB is not connected'), { statusCode: 503 })
+export async function pingDatabase() {
+  await connectDatabase()
+  let timer
+  try {
+    await Promise.race([
+      getDatabasePool().query('SELECT 1 AS ok'),
+      new Promise((_, reject) => {
+        timer = setTimeout(
+          () => reject(Object.assign(new Error('MySQL health check timed out'), { code: 'MYSQL_HEALTH_TIMEOUT' })),
+          env.mysql.connectionTimeoutMs,
+        )
+      }),
+    ])
+  } catch (error) {
+    databaseStatus = 'disconnected'
+    throw error
+  } finally {
+    clearTimeout(timer)
   }
-
-  return mongoose.connection.db
+  return true
 }

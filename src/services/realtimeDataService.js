@@ -1,6 +1,5 @@
-import mongoose from 'mongoose'
-import { getDatabaseStatus } from '../config/database.js'
-import { getModelForCollection } from '../models/index.js'
+import { randomUUID } from 'node:crypto'
+import { getDatabasePool, getDatabaseStatus } from '../config/database.js'
 
 export const FieldValue = {
   serverTimestamp: () => new Date().toISOString(),
@@ -14,7 +13,7 @@ export function notFound(message = 'Record not found') {
   return Object.assign(new Error(message), { statusCode: 404 })
 }
 
-export function databaseUnavailable(message = 'Database is not connected. Add Render outbound IPs to MongoDB Atlas and verify MONGODB_URI.') {
+export function databaseUnavailable(message = 'Database is not connected. Verify the MySQL environment variables and network access.') {
   return Object.assign(new Error(message), {
     statusCode: 503,
     code: 'DATABASE_UNAVAILABLE',
@@ -26,20 +25,17 @@ export function ensureDatabaseReady() {
   if (getDatabaseStatus() !== 'connected') throw databaseUnavailable()
 }
 
-export function mapRealtimeValue(value) {
-  if (!value) return value
-  if (typeof value.toDate === 'function') return value.toDate().toISOString()
+function normalizeValue(value) {
   if (value instanceof Date) return value.toISOString()
-  if (value instanceof mongoose.Types.ObjectId) return value.toString()
-  if (Array.isArray(value)) return value.map(mapRealtimeValue)
-  if (typeof value === 'object') {
-    return Object.fromEntries(
-      Object.entries(value)
-        .filter(([key]) => key !== '_id' && key !== '__v')
-        .map(([key, entry]) => [key, mapRealtimeValue(entry)]),
-    )
+  if (Array.isArray(value)) return value.map(normalizeValue)
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, normalizeValue(entry)]))
   }
   return value
+}
+
+export function mapRealtimeValue(value) {
+  return normalizeValue(value)
 }
 
 export function mapDoc(doc) {
@@ -49,9 +45,7 @@ export function mapDoc(doc) {
 export function stripUndefined(data) {
   if (Array.isArray(data)) return data.map(stripUndefined).filter((value) => value !== undefined)
   if (data instanceof Date) return data.toISOString()
-  if (data instanceof mongoose.Types.ObjectId) return data.toString()
   if (!data || typeof data !== 'object') return data
-
   return Object.fromEntries(
     Object.entries(data)
       .filter(([, value]) => value !== undefined)
@@ -59,82 +53,61 @@ export function stripUndefined(data) {
   )
 }
 
-function createMongoId() {
-  return new mongoose.Types.ObjectId().toString()
-}
-
-function ensureMongoKey(id) {
+function ensureKey(id) {
   const key = String(id || '').trim()
-  if (!key) {
-    throw Object.assign(new Error('Invalid record id for MongoDB'), { statusCode: 400 })
-  }
+  if (!key) throw Object.assign(new Error('Invalid record id'), { statusCode: 400 })
   return key
 }
 
-function normalizeMongoDocument(value) {
-  if (!value) return null
-  const record = mapRealtimeValue(value)
-  const id = String(value._id || record.id || '')
-  delete record._id
-  delete record.__v
-  return {
-    id: record.id || id,
-    ...record,
+function parseRow(row) {
+  let value = {}
+  try {
+    value = JSON.parse(row.data || '{}')
+  } catch {
+    value = {}
   }
+  return { id: row.id, ...value }
 }
 
-function addCondition(query, field, condition) {
-  const existing = query[field]
+function getField(record, field) {
+  return field.split('.').reduce((value, part) => value?.[part], record)
+}
 
-  if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
-    query[field] = condition
-    return
+function valuesEqual(actual, expected) {
+  if (actual === expected) return true
+  if (actual == null || expected == null) return false
+  return String(actual) === String(expected)
+}
+
+function matches(record, [field, operator, expected]) {
+  const actual = getField(record, field)
+  if (operator === '==') return valuesEqual(actual, expected)
+  if (operator === '!=') return !valuesEqual(actual, expected)
+  if (operator === 'array-contains') return Array.isArray(actual) && actual.some((item) => valuesEqual(item, expected))
+  if (operator === 'in') {
+    if (!Array.isArray(expected)) throw Object.assign(new Error('"in" filter expects an array value'), { statusCode: 400 })
+    return expected.some((item) => valuesEqual(actual, item))
   }
-
-  query[field] = { ...existing, ...condition }
+  throw Object.assign(new Error(`Unsupported filter operator: ${operator}`), { statusCode: 400 })
 }
 
-function buildMongoQuery(filters = []) {
-  const query = {}
-
-  filters.forEach(([field, operator, expected]) => {
-    if (operator === '==') {
-      query[field] = expected
-      return
-    }
-
-    if (operator === 'array-contains') {
-      query[field] = expected
-      return
-    }
-
-    if (operator === '!=') {
-      addCondition(query, field, { $ne: expected })
-      return
-    }
-
-    if (operator === 'in') {
-      if (!Array.isArray(expected)) {
-        throw Object.assign(new Error('MongoDB "in" filter expects an array value'), { statusCode: 400 })
-      }
-      addCondition(query, field, { $in: expected })
-      return
-    }
-
-    throw Object.assign(new Error(`Unsupported MongoDB filter operator: ${operator}`), {
-      statusCode: 400,
-    })
-  })
-
-  return query
+function compareValues(a, b) {
+  if (a == null && b == null) return 0
+  if (a == null) return -1
+  if (b == null) return 1
+  if (typeof a === 'number' && typeof b === 'number') return a - b
+  const dateA = Date.parse(a)
+  const dateB = Date.parse(b)
+  if (!Number.isNaN(dateA) && !Number.isNaN(dateB)) return dateA - dateB
+  return String(a).localeCompare(String(b))
 }
 
-class MongoDocumentSnapshot {
+class SqlDocumentSnapshot {
   constructor(collectionName, id, value) {
     this.id = id
-    this.ref = new MongoDocumentRef(collectionName, id)
+    this.ref = new SqlDocumentRef(collectionName, id)
     this.exists = value !== null && value !== undefined
-    this._value = normalizeMongoDocument(value)
+    this._value = this.exists ? value : null
   }
 
   data() {
@@ -142,7 +115,7 @@ class MongoDocumentSnapshot {
   }
 }
 
-class MongoQuerySnapshot {
+class SqlQuerySnapshot {
   constructor(docs) {
     this.docs = docs
     this.size = docs.length
@@ -150,63 +123,54 @@ class MongoQuerySnapshot {
   }
 }
 
-class MongoDocumentRef {
+class SqlDocumentRef {
   constructor(collectionName, id) {
     this.collectionName = collectionName
-    this.id = ensureMongoKey(id)
-  }
-
-  model() {
-    return getModelForCollection(this.collectionName)
+    this.id = ensureKey(id)
   }
 
   async get() {
     ensureDatabaseReady()
-    const record = await this.model().findOne({ _id: this.id }).lean()
-    return new MongoDocumentSnapshot(this.collectionName, this.id, record)
+    const [rows] = await getDatabasePool().execute(
+      'SELECT id, data FROM app_records WHERE collection_name = ? AND id = ? LIMIT 1',
+      [this.collectionName, this.id],
+    )
+    return new SqlDocumentSnapshot(this.collectionName, this.id, rows[0] ? parseRow(rows[0]) : null)
   }
 
   async set(data, options = {}) {
     ensureDatabaseReady()
-    const record = stripUndefined(data)
-    const document = {
-      ...record,
-      id: record.id || this.id,
-    }
-
+    const incoming = stripUndefined(data)
+    let record = { id: this.id, ...incoming }
     if (options.merge) {
-      await this.model().updateOne(
-        { _id: this.id },
-        { $set: document },
-        { runValidators: true, upsert: true },
-      )
-      return
+      const current = await this.get()
+      record = { ...(current.exists ? current.data() : {}), ...record }
     }
-
-    await this.model().replaceOne(
-      { _id: this.id },
-      { _id: this.id, ...document },
-      { runValidators: true, upsert: true },
+    await getDatabasePool().execute(
+      `INSERT INTO app_records (collection_name, id, data, created_at, updated_at)
+       VALUES (?, ?, ?, CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3))
+       ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = CURRENT_TIMESTAMP(3)`,
+      [this.collectionName, this.id, JSON.stringify(record)],
     )
   }
 
   async update(updates) {
     ensureDatabaseReady()
-    const record = stripUndefined(updates)
-    await this.model().updateOne(
-      { _id: this.id },
-      { $set: record },
-      { runValidators: true },
-    )
+    const current = await this.get()
+    if (!current.exists) throw notFound()
+    await this.set({ ...current.data(), ...stripUndefined(updates) })
   }
 
   async delete() {
     ensureDatabaseReady()
-    await this.model().deleteOne({ _id: this.id })
+    await getDatabasePool().execute(
+      'DELETE FROM app_records WHERE collection_name = ? AND id = ?',
+      [this.collectionName, this.id],
+    )
   }
 }
 
-class MongoCollectionQuery {
+class SqlCollectionQuery {
   constructor(collectionName, options = {}) {
     this.collectionName = collectionName
     this.filters = options.filters || []
@@ -214,16 +178,12 @@ class MongoCollectionQuery {
     this.limitCount = options.limitCount || null
   }
 
-  model() {
-    return getModelForCollection(this.collectionName)
-  }
-
   doc(id) {
-    return new MongoDocumentRef(this.collectionName, id)
+    return new SqlDocumentRef(this.collectionName, id)
   }
 
   where(field, operator, value) {
-    return new MongoCollectionQuery(this.collectionName, {
+    return new SqlCollectionQuery(this.collectionName, {
       filters: [...this.filters, [field, operator, value]],
       order: this.order,
       limitCount: this.limitCount,
@@ -231,7 +191,7 @@ class MongoCollectionQuery {
   }
 
   orderBy(field, direction = 'asc') {
-    return new MongoCollectionQuery(this.collectionName, {
+    return new SqlCollectionQuery(this.collectionName, {
       filters: this.filters,
       order: [field, direction],
       limitCount: this.limitCount,
@@ -239,7 +199,7 @@ class MongoCollectionQuery {
   }
 
   limit(limitCount) {
-    return new MongoCollectionQuery(this.collectionName, {
+    return new SqlCollectionQuery(this.collectionName, {
       filters: this.filters,
       order: this.order,
       limitCount,
@@ -248,26 +208,27 @@ class MongoCollectionQuery {
 
   async get() {
     ensureDatabaseReady()
-    const query = this.model().find(buildMongoQuery(this.filters)).lean()
-
+    const [rows] = await getDatabasePool().execute(
+      'SELECT id, data FROM app_records WHERE collection_name = ?',
+      [this.collectionName],
+    )
+    let records = rows.map(parseRow).filter((record) => this.filters.every((filter) => matches(record, filter)))
     if (this.order) {
       const [field, direction] = this.order
-      query.sort({ [field]: direction === 'desc' ? -1 : 1 })
+      records.sort((a, b) => {
+        const result = compareValues(getField(a, field), getField(b, field))
+        return direction === 'desc' ? -result : result
+      })
     }
-
-    if (this.limitCount) query.limit(this.limitCount)
-
-    const records = await query.exec()
-    return new MongoQuerySnapshot(
-      records.map((record) =>
-        new MongoDocumentSnapshot(this.collectionName, String(record._id || record.id), record),
-      ),
+    if (this.limitCount) records = records.slice(0, this.limitCount)
+    return new SqlQuerySnapshot(
+      records.map((record) => new SqlDocumentSnapshot(this.collectionName, record.id, record)),
     )
   }
 }
 
 export function collectionRef(collectionName) {
-  return new MongoCollectionQuery(collectionName)
+  return new SqlCollectionQuery(collectionName)
 }
 
 export async function getDocument(collectionName, id) {
@@ -277,47 +238,32 @@ export async function getDocument(collectionName, id) {
 }
 
 export async function listDocuments(collectionName, options = {}) {
-  const {
-    filters = [],
-    limit,
-    orderBy = ['createdAt', 'desc'],
-  } = options
+  const { filters = [], limit, orderBy = ['createdAt', 'desc'] } = options
   let query = collectionRef(collectionName)
-
-  filters.forEach(([field, operator, value]) => {
-    query = query.where(field, operator, value)
-  })
-
-  if (orderBy) {
-    const [field, direction = 'asc'] = orderBy
-    query = query.orderBy(field, direction)
-  }
-
+  filters.forEach(([field, operator, value]) => { query = query.where(field, operator, value) })
+  if (orderBy) query = query.orderBy(orderBy[0], orderBy[1] || 'asc')
   if (limit) query = query.limit(limit)
-
   const snapshot = await query.get()
   return snapshot.docs.map(mapDoc)
 }
 
 export async function createDocument(collectionName, data, id) {
-  const documentId = ensureMongoKey(id || createMongoId())
+  const documentId = ensureKey(id || data.id || randomUUID())
   const record = stripUndefined({
     ...data,
-    id: data.id || documentId,
+    id: documentId,
     createdAt: data.createdAt || now(),
     updatedAt: now(),
   })
-
-  const ref = collectionRef(collectionName).doc(documentId)
-  await ref.set(record)
-  return getDocument(collectionName, ref.id)
+  await collectionRef(collectionName).doc(documentId).set(record)
+  return getDocument(collectionName, documentId)
 }
 
 export async function updateDocument(collectionName, id, updates) {
   const ref = collectionRef(collectionName).doc(id)
   const existing = await ref.get()
   if (!existing.exists) throw notFound()
-  await ref.set(stripUndefined({ ...updates, updatedAt: now() }), { merge: true })
+  await ref.set({ ...stripUndefined(updates), updatedAt: now() }, { merge: true })
   return getDocument(collectionName, id)
 }
 
@@ -330,8 +276,10 @@ export async function deleteDocument(collectionName, id) {
 }
 
 export async function countDocuments(collectionName, filters = []) {
-  ensureDatabaseReady()
-  return getModelForCollection(collectionName).countDocuments(buildMongoQuery(filters))
+  let query = collectionRef(collectionName)
+  filters.forEach(([field, operator, value]) => { query = query.where(field, operator, value) })
+  const result = await query.get()
+  return result.size
 }
 
 export async function deleteQuerySnapshot(snapshot) {

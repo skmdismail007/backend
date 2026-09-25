@@ -1,5 +1,5 @@
 import { createApp } from './src/app.js'
-import { connectDatabase, disconnectDatabase, getMongoConnectionDiagnostics } from './src/config/database.js'
+import { connectDatabase, disconnectDatabase, getDatabaseDiagnostics } from './src/config/database.js'
 import { env } from './src/config/env.js'
 
 const databaseRetryDelayMs = 15_000
@@ -12,13 +12,13 @@ function connectDatabaseWithRetry() {
 
   connectDatabase()
     .then(() => {
-      console.log('MongoDB connected.', getMongoConnectionDiagnostics())
+      console.log('MySQL connected.', getDatabaseDiagnostics())
     })
     .catch((error) => {
-      console.error('MongoDB connection failed:', {
+      console.error('MySQL connection failed:', {
         attempt: databaseAttempt,
         retryInMs: isShuttingDown ? null : databaseRetryDelayMs,
-        ...getMongoConnectionDiagnostics(error),
+        ...getDatabaseDiagnostics(error),
       })
 
       if (!isShuttingDown) {

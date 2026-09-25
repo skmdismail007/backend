@@ -119,12 +119,12 @@ export function getProductById(id) {
 
 export async function createProduct(data) {
   const normalized = normalizeProductPayload(data)
-  if (env.nodeEnv !== 'production') console.debug('[backend] creating product in MongoDB', {
+  if (env.nodeEnv !== 'production') console.debug('[backend] creating product in MySQL', {
     name: normalized.name,
     category: normalized.category,
   })
   const product = await createDocument('products', normalized, data.id)
-  if (env.nodeEnv !== 'production') console.debug('[backend] MongoDB product result', { id: product.id })
+  if (env.nodeEnv !== 'production') console.debug('[backend] MySQL product result', { id: product.id })
   return product
 }
 

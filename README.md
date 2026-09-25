@@ -1,6 +1,6 @@
 # Akiwa Backend
 
-Express backend using MongoDB through Mongoose. Uploaded files are stored in MongoDB GridFS and served through the API.
+Express backend using MySQL/MariaDB through mysql2. Uploaded files are stored in the database and served through the API.
 
 ## Setup
 
@@ -10,14 +10,16 @@ npm install
 cp .env.example .env
 ```
 
-Then open `backend/.env` and set `MONGODB_URI` to your local or MongoDB Atlas connection string.
+Then open `backend/.env` and set the `MYSQL_*` variables. Never commit `MYSQL_PASSWORD`.
 Set `API_BASE_URL` to the public API URL when deploying so uploaded file links resolve correctly.
 
 ## Database
 
-The API uses MongoDB collections for products, services, reviews, contact messages, quote requests, users, addresses, orders, site settings, categories, banners, blog posts, and freelance requests.
+The API stores products, services, reviews, contact messages, quote requests, users, addresses, orders, site settings, categories, banners, blog posts, and freelance requests in `app_records`. The JSON payload preserves the existing API shapes.
 
-Uploaded files use the `uploads` GridFS bucket. The API stores only `/api/files/:id` URLs in MongoDB.
+Uploaded files use the `uploads` table. The API stores only `/api/files/:id` URLs in `app_records`.
+
+Run `schema.sql` manually if the database user cannot create tables. The server also creates these tables automatically when it connects.
 
 ## Run
 
