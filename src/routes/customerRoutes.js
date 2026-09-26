@@ -14,6 +14,7 @@ import {
   postReview,
   postUserAddress,
   postUserLogin,
+  postUserForgotPassword,
   postUserOrder,
   postUserRegister,
   patchUserAddress,
@@ -33,6 +34,7 @@ import {
   reviewCreateSchema,
   userIdSchema,
   userLoginSchema,
+  userForgotPasswordSchema,
   userRegisterSchema,
   userUpdateSchema,
 } from '../validators/customerSchemas.js'
@@ -48,6 +50,7 @@ router.post('/quotes', validate(quoteCreateSchema), asyncHandler(postQuoteReques
 router.post('/freelance-requests', validate(freelanceRequestCreateSchema), asyncHandler(postFreelanceRequest))
 router.post('/users/register', validate(userRegisterSchema), asyncHandler(postUserRegister))
 router.post('/users/login', validate(userLoginSchema), asyncHandler(postUserLogin))
+router.post('/users/forgot-password', validate(userForgotPasswordSchema), asyncHandler(postUserForgotPassword))
 router.patch('/users/:id', validate(userUpdateSchema), asyncHandler(patchUser))
 router.get('/users/:id/addresses', validate(userIdSchema), asyncHandler(getUserAddresses))
 router.post('/users/:id/addresses', validate(addressCreateSchema), asyncHandler(postUserAddress))

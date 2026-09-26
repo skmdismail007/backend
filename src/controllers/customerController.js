@@ -16,6 +16,7 @@ import {
   listUserOrders,
   loginUser,
   registerUser,
+  forgotPassword,
   setUserDefaultAddress,
   updateUser,
   cancelUserOrder,
@@ -61,6 +62,11 @@ export async function postUserRegister(request, response) {
 export async function postUserLogin(request, response) {
   const user = await loginUser(request.validated.body.email, request.validated.body.password)
   response.json(user)
+}
+
+export async function postUserForgotPassword(request, response) {
+  const result = await forgotPassword(request.validated.body.email)
+  response.json(result)
 }
 
 export async function patchUser(request, response) {

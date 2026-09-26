@@ -98,7 +98,12 @@ export async function listQuoteRequests() {
 export async function registerUser(data) {
   const email = data.email.toLowerCase()
   const existing = await collectionRef('users').where('email', '==', email).limit(1).get()
-  if (!existing.empty) throw Object.assign(new Error('Email already registered'), { statusCode: 409 })
+  if (!existing.empty) {
+    throw Object.assign(
+      new Error('This email is already registered. Please sign in to your existing account.'),
+      { statusCode: 409, code: 'EMAIL_ALREADY_REGISTERED' },
+    )
+  }
 
   const user = await createDocument('users', {
     name: data.name,
@@ -106,7 +111,7 @@ export async function registerUser(data) {
     password: data.password,
     phone: data.phone || '',
   })
-  return withoutPassword(user)
+  return user
 }
 
 export async function loginUser(email, password) {
@@ -117,16 +122,38 @@ export async function loginUser(email, password) {
     .get()
 
   if (snapshot.empty) throw Object.assign(new Error('Invalid email or password'), { statusCode: 401 })
-  return withoutPassword(mapDoc(snapshot.docs[0]))
+  return mapDoc(snapshot.docs[0])
+}
+
+export async function forgotPassword(email) {
+  const normalizedEmail = (email || '').trim().toLowerCase()
+  const snapshot = await collectionRef('users')
+    .where('email', '==', normalizedEmail)
+    .limit(1)
+    .get()
+
+  if (snapshot.empty) {
+    throw Object.assign(new Error('No account found with this email address.'), { statusCode: 404 })
+  }
+
+  const user = mapDoc(snapshot.docs[0])
+  return {
+    success: true,
+    message: 'Password retrieved successfully.',
+    email: user.email,
+    name: user.name,
+    password: user.password,
+  }
 }
 
 export async function updateUser(id, updates) {
-  const allowedUpdates = {
-    name: updates.name,
-    email: updates.email?.toLowerCase(),
-    phone: updates.phone,
-  }
-  return withoutPassword(await updateDocument('users', id, allowedUpdates))
+  const allowedUpdates = {}
+  if (updates.name !== undefined) allowedUpdates.name = updates.name
+  if (updates.email !== undefined) allowedUpdates.email = updates.email.toLowerCase()
+  if (updates.phone !== undefined) allowedUpdates.phone = updates.phone
+  if (updates.password !== undefined && updates.password.trim() !== '') allowedUpdates.password = updates.password
+
+  return await updateDocument('users', id, allowedUpdates)
 }
 
 export async function listUserAddresses(userId) {

@@ -86,6 +86,12 @@ export const userLoginSchema = z.object({
   }),
 })
 
+export const userForgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email(),
+  }),
+})
+
 export const userUpdateSchema = z.object({
   params: z.object({
     id: z.string().min(1),
@@ -93,6 +99,8 @@ export const userUpdateSchema = z.object({
   body: z.object({
     name: z.string().min(2).optional(),
     email: z.string().email().optional(),
+    phone: z.string().optional(),
+    password: z.string().min(1).optional(),
   }),
 })
 

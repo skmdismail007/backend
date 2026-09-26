@@ -77,7 +77,7 @@ export async function getDashboardSummary() {
 }
 
 export async function listUsers() {
-  return (await listCollection('users')).map(withoutPassword)
+  return await listCollection('users')
 }
 
 export async function getUserDetails(id) {
@@ -88,21 +88,20 @@ export async function getUserDetails(id) {
   ])
   const addresses = sortNewest(addressSnapshot.docs.map(mapDoc))
   const orders = sortNewest(orderSnapshot.docs.map(mapDoc))
-  const safeUser = withoutPassword(user)
   const phone =
-    safeUser.phone ||
+    user.phone ||
     addresses.find((address) => address.phone)?.phone ||
     orders.find((order) => order.phone)?.phone ||
     orders.find((order) => order.address?.phone)?.address?.phone ||
     ''
 
   return {
-    user: safeUser,
+    user,
     addresses,
     orders,
     contact: {
-      name: safeUser.name,
-      email: safeUser.email || orders.find((order) => order.email)?.email || '',
+      name: user.name,
+      email: user.email || orders.find((order) => order.email)?.email || '',
       phone,
     },
   }
@@ -145,7 +144,13 @@ export function deleteQuote(id) {
 }
 
 export async function updateUserByAdmin(id, updates) {
-  return withoutPassword(await updateDocument('users', id, updates))
+  const allowedUpdates = {}
+  if (updates.name !== undefined) allowedUpdates.name = updates.name
+  if (updates.email !== undefined) allowedUpdates.email = updates.email.toLowerCase()
+  if (updates.phone !== undefined) allowedUpdates.phone = updates.phone
+  if (updates.password !== undefined && updates.password.trim() !== '') allowedUpdates.password = updates.password
+
+  return await updateDocument('users', id, allowedUpdates)
 }
 
 export async function deleteUserByAdmin(id) {

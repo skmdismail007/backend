@@ -2,7 +2,16 @@ import { collectionRef, mapDoc, updateDocument } from './realtimeDataService.js'
 import { deleteImagesByUrls } from './imageService.js'
 
 const MAX_SITE_HERO_IMAGES = 3
-const imageFields = ['logoUrl', 'heroImage', 'testimonialImageOne', 'testimonialImageTwo']
+const imageFields = [
+  'logoUrl',
+  'heroImage',
+  'testimonialImageOne',
+  'testimonialImageTwo',
+  'productsHeroImage',
+  'servicesHeroImage',
+  'reviewsHeroImage',
+  'freelanceHeroImage',
+]
 
 export const EMPTY_SITE_SETTINGS = {
   logoUrl: '',

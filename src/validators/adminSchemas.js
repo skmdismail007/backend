@@ -65,7 +65,8 @@ export const adminUserUpdateSchema = z.object({
   body: z.object({
     name: z.string().min(2).optional(),
     email: z.string().email().optional(),
-    phone: z.string().min(8).optional(),
+    phone: z.string().optional(),
+    password: z.string().min(1).optional(),
   }),
 })
 
@@ -75,7 +76,7 @@ export const adminAddressUpdateSchema = z.object({
   }),
   body: z.object({
     fullName: z.string().min(2).optional(),
-    phone: z.string().min(8).optional(),
+    phone: z.string().optional(),
     street: z.string().min(2).optional(),
     city: z.string().min(2).optional(),
     state: z.string().min(2).optional(),
@@ -132,12 +133,17 @@ export const adminSiteSettingsSchema = z.object({
     contactText: siteTextSchema.optional(),
     contactEmail: z.string().email().optional().or(z.literal('')),
     contactPhone: siteTextSchema.optional(),
+    contactAddress: siteTextSchema.optional(),
     contactServiceAreas: siteListSchema.optional(),
     contactHeroTitle: siteTextSchema.optional(),
     contactHeroText: siteTextSchema.optional(),
     freelanceHeroTitle: siteTextSchema.optional(),
     freelanceHeroText: siteTextSchema.optional(),
     freelanceHeroImage: siteTextSchema.optional(),
+    reviewsHeroEyebrow: siteTextSchema.optional(),
+    reviewsHeroTitle: siteTextSchema.optional(),
+    reviewsHeroText: siteTextSchema.optional(),
+    reviewsHeroImage: siteTextSchema.optional(),
     footerDescription: siteTextSchema.optional(),
   }),
 })
