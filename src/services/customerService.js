@@ -9,6 +9,7 @@ import {
   updateDocument,
 } from './realtimeDataService.js'
 import { deleteImagesByUrls } from './imageService.js'
+import { sendOrderWhatsAppNotification } from './whatsappService.js'
 
 function withoutPassword(user) {
   const safeUser = { ...user }
@@ -222,7 +223,7 @@ export async function listUserOrders(userId) {
   return sortNewest(snapshot.docs.map(mapDoc))
 }
 
-export function createUserOrder(userId, data) {
+export async function createUserOrder(userId, data) {
   const orderPayload = {
     ...data,
     userId,
@@ -231,7 +232,18 @@ export function createUserOrder(userId, data) {
     trackingNumber: data.trackingNumber || `AKIWA${Date.now().toString().slice(-8).toUpperCase()}`,
   }
 
-  return createDocument('orders', orderPayload)
+  const order = await createDocument('orders', orderPayload)
+
+  // Dispatch automated background WhatsApp notification to Master Admin
+  try {
+    sendOrderWhatsAppNotification({ ...orderPayload, id: order.id }).catch((err) => {
+      console.warn('[createUserOrder] Background WhatsApp notification warning:', err.message)
+    })
+  } catch (err) {
+    console.warn('[createUserOrder] Failed to invoke WhatsApp notification:', err.message)
+  }
+
+  return order
 }
 
 export async function cancelUserOrder(orderId, cancellationReason) {

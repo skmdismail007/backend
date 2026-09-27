@@ -139,6 +139,12 @@ export const adminSiteSettingsSchema = z.object({
     contactText: siteTextSchema.optional(),
     contactEmail: z.string().email().optional().or(z.literal('')),
     contactPhone: siteTextSchema.optional(),
+    whatsappNumber: siteTextSchema.optional(),
+    whatsappGatewayProvider: z.enum(['fireclashpro', 'waapi', 'ultramsg', 'greenapi', 'meta', 'custom', 'off']).optional(),
+    whatsappGatewayInstanceId: siteTextSchema.optional(),
+    whatsappGatewayToken: siteTextSchema.optional(),
+    whatsappGatewayUrl: siteTextSchema.optional(),
+    enableWhatsappNotifications: z.boolean().optional(),
     contactAddress: siteTextSchema.optional(),
     contactServiceAreas: siteListSchema.optional(),
     contactHeroTitle: siteTextSchema.optional(),
@@ -151,6 +157,16 @@ export const adminSiteSettingsSchema = z.object({
     reviewsHeroText: siteTextSchema.optional(),
     reviewsHeroImage: siteTextSchema.optional(),
     footerDescription: siteTextSchema.optional(),
+  }),
+})
+
+export const adminTestWhatsAppSchema = z.object({
+  body: z.object({
+    provider: z.enum(['fireclashpro', 'waapi', 'ultramsg', 'greenapi', 'meta', 'custom', 'off']).optional(),
+    instanceId: z.string().optional().default(''),
+    token: z.string().min(1),
+    phone: z.string().min(10),
+    customUrl: z.string().optional(),
   }),
 })
 

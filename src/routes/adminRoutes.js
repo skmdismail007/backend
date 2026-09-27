@@ -23,6 +23,7 @@ import {
   postAdminSiteLogo,
   postAdminStaff,
   postAdminStaffLogin,
+  postAdminTestWhatsApp,
   removeAdminAddress,
   removeAdminMessage,
   removeAdminOrder,
@@ -45,10 +46,14 @@ import {
   adminStaffLoginSchema,
   adminStaffUpdateSchema,
   adminStatusSchema,
+  adminTestWhatsAppSchema,
   adminUserUpdateSchema,
 } from '../validators/adminSchemas.js'
 
 const router = Router()
+
+// WhatsApp Gateway Test
+router.post('/whatsapp/test', validate(adminTestWhatsAppSchema), asyncHandler(postAdminTestWhatsApp))
 
 // Staff Auth & Management
 router.get('/staff', asyncHandler(getAdminStaff))

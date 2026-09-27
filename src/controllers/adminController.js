@@ -27,6 +27,7 @@ import {
 import { listContactMessages, listQuoteRequests } from '../services/customerService.js'
 import { uploadSiteImage } from '../services/imageService.js'
 import { getSiteSettings, updateSiteSettings } from '../services/siteSettingsService.js'
+import { sendWhatsAppMessage } from '../services/whatsappService.js'
 
 const MAX_SITE_HERO_IMAGES = 3
 
@@ -224,5 +225,29 @@ export async function patchAdminStaff(request, response) {
 
 export async function removeAdminStaff(request, response) {
   response.json(await deleteAdminStaff(request.validated.params.id))
+}
+
+export async function postAdminTestWhatsApp(request, response) {
+  const { provider, instanceId, token, phone, customUrl } = request.validated.body
+  const testMessage =
+    `🧪 *DAYNAMIC WhatsApp Gateway Test*\n\n` +
+    `✅ Your background WhatsApp Gateway connection is working perfectly!\n` +
+    `All automated store order receipts and customer inquiries will now be delivered to this number 100% in the background.\n\n` +
+    `Timestamp: ${new Date().toLocaleString('en-IN')}`
+
+  const result = await sendWhatsAppMessage({
+    provider,
+    instanceId,
+    token,
+    to: phone,
+    message: testMessage,
+    customUrl,
+  })
+
+  response.json({
+    success: true,
+    message: 'Test WhatsApp message sent successfully!',
+    result,
+  })
 }
 
