@@ -11,8 +11,9 @@ export function formatOrderWhatsAppText(order = {}) {
   const orderId = order.id || order.trackingNumber || `ORD-${Date.now()}`
   const customerName =
     order.address?.fullName || order.name || order.customerName || 'Valued Customer'
-  const customerPhone = order.address?.phone || order.phone || ''
-  const customerEmail = order.email || ''
+  const rawPhone = (order.address?.phone || order.phone || '').replace(/\D/g, '')
+  const customerPhone = rawPhone.length === 10 ? `+91 ${rawPhone}` : rawPhone ? `+${rawPhone}` : 'N/A'
+  const customerEmail = order.email || 'N/A'
   const address = order.address
 
   const addressLine = address
@@ -25,7 +26,7 @@ export function formatOrderWhatsAppText(order = {}) {
       const price = Number(item.price || 0)
       const qty = Number(item.quantity || 1)
       const itemTotal = price * qty
-      return `${idx + 1}. *${item.name}*\n   ▫️ Qty: ${qty} | Price: ₹${price.toLocaleString('en-IN')} | Total: *₹${itemTotal.toLocaleString('en-IN')}*`
+      return `${idx + 1}. *${item.name}*\n   ▫️ Quantity: *${qty}* | Price: ₹${price.toLocaleString('en-IN')} | Total: *₹${itemTotal.toLocaleString('en-IN')}*`
     })
     .join('\n\n')
 
@@ -33,28 +34,32 @@ export function formatOrderWhatsAppText(order = {}) {
   const total = Number(order.total || 0).toLocaleString('en-IN')
   const discount = Number(order.discount || 0)
   const coupon = order.couponCode ? ` (${order.couponCode})` : ''
-  const paymentLabel = order.payment?.label || order.payment?.method?.toUpperCase() || 'UPI'
-  const utr = order.payment?.upi?.utr || ''
+  const paymentLabel = order.payment?.label || order.payment?.method?.toUpperCase() || 'UPI / Online'
+  const utr = order.payment?.upi?.utr || 'N/A'
 
-  let msg = `🛍️ *NEW ORDER CONFIRMATION - DAYNAMIC*\n`
-  msg += `━━━━━━━━━━━━━━━━━━━━\n`
-  msg += `📋 *Order ID:* #${orderId}\n`
-  msg += `👤 *Customer Name:* ${customerName}\n`
-  if (customerPhone) msg += `📞 *Phone:* +${customerPhone.replace(/\D/g, '')}\n`
-  if (customerEmail) msg += `📧 *Email:* ${customerEmail}\n`
-  if (addressLine && addressLine !== 'N/A') msg += `📍 *Delivery Address:* ${addressLine}\n`
-  msg += `\n📦 *ORDERED ITEMS (${items.length}):*\n`
-  msg += `${itemsText || '1x Order Package'}\n`
-  msg += `\n━━━━━━━━━━━━━━━━━━━━\n`
-  msg += `💰 *Subtotal:* ₹${subtotal}\n`
+  let msg = `🛍️ *NEW ORDER RECEIVED*\n`
+  msg += `─────────────────────────\n\n`
+  msg += `👤 *CUSTOMER INFORMATION*\n`
+  msg += `• *Name:* ${customerName}\n`
+  msg += `• *Email:* ${customerEmail}\n`
+  msg += `• *Phone:* ${customerPhone}\n`
+  msg += `• *Address:* ${addressLine}\n\n`
+  msg += `─────────────────────────\n\n`
+  msg += `📋 *ORDER DETAILS*\n`
+  msg += `• *Order ID:* #${orderId}\n\n`
+  msg += `📦 *ITEM(S) ORDERED:*\n`
+  msg += `${itemsText || '1x Order Package'}\n\n`
+  msg += `─────────────────────────\n\n`
+  msg += `💳 *PAYMENT & BILLING*\n`
+  msg += `• *Payment Method:* ${paymentLabel}\n`
+  msg += `• *UPI Transaction ID (UTR):* ${utr}\n`
+  msg += `• *Subtotal:* ₹${subtotal}\n`
   if (discount > 0) {
-    msg += `🎟️ *Discount${coupon}:* -₹${discount.toLocaleString('en-IN')}\n`
+    msg += `• *Discount${coupon}:* -₹${discount.toLocaleString('en-IN')}\n`
   }
-  msg += `💵 *Grand Total:* *₹${total}*\n`
-  msg += `💳 *Payment:* ${paymentLabel} [Verified ✓]\n`
-  if (utr) msg += `🔢 *UTR / Ref No:* ${utr}\n`
-  msg += `━━━━━━━━━━━━━━━━━━━━\n`
-  msg += `✨ *Dispatched automatically from DAYNAMIC Web Server.*`
+  msg += `• *Grand Total:* *₹${total}*\n\n`
+  msg += `─────────────────────────\n`
+  msg += `✨ *Sent automatically from DAYNAMIC Web Store.*`
 
   return msg
 }
