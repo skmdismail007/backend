@@ -7,6 +7,7 @@ import searchRoutes from './searchRoutes.js'
 import adminRoutes from './adminRoutes.js'
 import siteSettingsRoutes from './siteSettingsRoutes.js'
 import filesRoutes from './filesRoutes.js'
+import offerRoutes from './offerRoutes.js'
 
 const router = Router()
 
@@ -17,6 +18,7 @@ router.use('/customers', customerRoutes)
 router.use('/search', searchRoutes)
 router.use('/site-settings', siteSettingsRoutes)
 router.use('/files', filesRoutes)
+router.use('/offers', offerRoutes)
 router.use('/admin', adminRoutes)
 
 export default router

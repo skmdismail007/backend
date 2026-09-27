@@ -104,6 +104,12 @@ export const adminOrderUpdateSchema = z.object({
 export const adminSiteSettingsSchema = z.object({
   body: z.object({
     logoUrl: siteTextSchema.optional(),
+    merchantUpiId: siteTextSchema.optional(),
+    merchantUpiName: siteTextSchema.optional(),
+    merchantUpiQrUrl: siteTextSchema.optional(),
+    enableUpiPayment: z.boolean().optional(),
+    enableCardPayment: z.boolean().optional(),
+    enableCodPayment: z.boolean().optional(),
     heroEyebrow: siteTextSchema.optional(),
     heroTitle: siteTextSchema.optional(),
     heroCopy: siteTextSchema.optional(),
@@ -147,3 +153,36 @@ export const adminSiteSettingsSchema = z.object({
     footerDescription: siteTextSchema.optional(),
   }),
 })
+
+export const adminStaffLoginSchema = z.object({
+  body: z.object({
+    email: z.string().min(1),
+    password: z.string().min(1),
+    role: z.enum(['main_admin', 'editor']).optional(),
+  }),
+})
+
+export const adminStaffCreateSchema = z.object({
+  body: z.object({
+    name: z.string().min(2),
+    email: z.string().email(),
+    password: z.string().min(6),
+    role: z.enum(['main_admin', 'editor']).default('editor'),
+    phone: z.string().optional(),
+  }),
+})
+
+export const adminStaffUpdateSchema = z.object({
+  params: z.object({
+    id: z.string().min(1),
+  }),
+  body: z.object({
+    name: z.string().min(2).optional(),
+    email: z.string().email().optional(),
+    password: z.string().min(6).optional(),
+    role: z.enum(['main_admin', 'editor']).optional(),
+    phone: z.string().optional(),
+    isActive: z.boolean().optional(),
+  }),
+})
+

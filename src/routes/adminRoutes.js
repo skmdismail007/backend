@@ -4,6 +4,7 @@ import {
   getAdminQuotes,
   getAdminReviews,
   getAdminSiteSettings,
+  getAdminStaff,
   getAdminSummary,
   getAdminAddresses,
   getAdminOrders,
@@ -16,14 +17,18 @@ import {
   patchAdminQuote,
   patchAdminReview,
   patchAdminSiteSettings,
+  patchAdminStaff,
   patchAdminUser,
   postAdminSiteImages,
   postAdminSiteLogo,
+  postAdminStaff,
+  postAdminStaffLogin,
   removeAdminAddress,
   removeAdminMessage,
   removeAdminOrder,
   removeAdminQuote,
   removeAdminReview,
+  removeAdminStaff,
   removeAdminUser,
 } from '../controllers/adminController.js'
 import { asyncHandler } from '../middleware/asyncHandler.js'
@@ -36,11 +41,22 @@ import {
   adminOrderStatusSchema,
   adminReviewUpdateSchema,
   adminSiteSettingsSchema,
+  adminStaffCreateSchema,
+  adminStaffLoginSchema,
+  adminStaffUpdateSchema,
   adminStatusSchema,
   adminUserUpdateSchema,
 } from '../validators/adminSchemas.js'
 
 const router = Router()
+
+// Staff Auth & Management
+router.get('/staff', asyncHandler(getAdminStaff))
+router.post('/staff/login', validate(adminStaffLoginSchema), asyncHandler(postAdminStaffLogin))
+router.post('/staff', validate(adminStaffCreateSchema), asyncHandler(postAdminStaff))
+router.patch('/staff/:id', validate(adminStaffUpdateSchema), asyncHandler(patchAdminStaff))
+router.delete('/staff/:id', validate(adminIdSchema), asyncHandler(removeAdminStaff))
+
 
 router.get('/summary', asyncHandler(getAdminSummary))
 router.get('/site-settings', asyncHandler(getAdminSiteSettings))

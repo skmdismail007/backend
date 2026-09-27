@@ -1,18 +1,23 @@
 import {
+  createAdminStaff,
   deleteMessage,
   deleteAddressByAdmin,
+  deleteAdminStaff,
   deleteOrderByAdmin,
   deleteQuote,
   deleteReview,
   deleteUserByAdmin,
+  getAdminStaffList,
   getDashboardSummary,
   getUserDetails,
   listAddresses,
   listAllReviews,
   listOrders,
   listUsers,
-  updateMessageStatus,
+  loginAdminStaff,
   updateAddressByAdmin,
+  updateAdminStaff,
+  updateMessageStatus,
   updateOrderByAdmin,
   updateOrderStatus,
   updateQuoteStatus,
@@ -189,3 +194,35 @@ export async function patchAdminOrderDetails(request, response) {
 export async function removeAdminOrder(request, response) {
   response.json(await deleteOrderByAdmin(request.validated.params.id))
 }
+
+export async function getAdminStaff(_request, response) {
+  response.json(await getAdminStaffList())
+}
+
+export async function postAdminStaffLogin(request, response) {
+  const { email, password, role } = request.validated.body
+  const staff = await loginAdminStaff(email, password, role)
+  response.json({
+    message: 'Login successful',
+    staff: {
+      id: staff.id,
+      name: staff.name,
+      email: staff.email,
+      role: staff.role,
+      isPrimary: staff.isPrimary,
+    },
+  })
+}
+
+export async function postAdminStaff(request, response) {
+  response.status(201).json(await createAdminStaff(request.validated.body))
+}
+
+export async function patchAdminStaff(request, response) {
+  response.json(await updateAdminStaff(request.validated.params.id, request.validated.body))
+}
+
+export async function removeAdminStaff(request, response) {
+  response.json(await deleteAdminStaff(request.validated.params.id))
+}
+

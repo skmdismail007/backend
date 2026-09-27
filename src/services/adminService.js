@@ -3,11 +3,13 @@ import {
   countDocuments,
   deleteDocument,
   deleteQuerySnapshot,
+  ensureDatabaseReady,
   getDocument,
   mapDoc,
   sortNewest,
   updateDocument,
 } from './realtimeDataService.js'
+import { getDatabasePool } from '../config/database.js'
 import { deleteReviewWithFile } from './customerService.js'
 
 function withoutPassword(user) {
@@ -27,52 +29,73 @@ async function listCollection(collectionName) {
 }
 
 export async function getDashboardSummary() {
-  const [
-    products,
-    services,
-    reviews,
-    newMessages,
-    newQuotes,
-    users,
-    orders,
-    categories,
-    banners,
-    blogPosts,
-    freelanceRequests,
-    latestMessages,
-    latestQuotes,
-  ] = await Promise.all([
-    countDocuments('products', [['isActive', '==', true]]),
-    countDocuments('services', [['isActive', '==', true]]),
-    countDocuments('reviews'),
-    countDocuments('contactMessages', [['status', '==', 'new']]),
-    countDocuments('quoteRequests', [['status', '==', 'new']]),
-    countDocuments('users'),
-    countDocuments('orders'),
-    countDocuments('categories'),
-    countDocuments('banners'),
-    countDocuments('blogPosts'),
-    countDocuments('freelanceRequests', [['status', '==', 'new']]),
-    latest('contactMessages'),
-    latest('quoteRequests'),
-  ])
+  try {
+    ensureDatabaseReady()
 
-  return {
-    totals: {
-      products,
-      services,
-      reviews,
-      newMessages,
-      newQuotes,
-      users,
-      orders,
-      categories,
-      banners,
-      blogPosts,
-      freelanceRequests,
-    },
-    latestMessages,
-    latestQuotes,
+    // 1. Group counts in a single fast query instead of 11 parallel connections
+    const [rows] = await getDatabasePool().execute(
+      'SELECT collection_name, COUNT(*) AS count FROM app_records GROUP BY collection_name'
+    )
+    const countsMap = {}
+    if (Array.isArray(rows)) {
+      rows.forEach((row) => {
+        countsMap[row.collection_name] = Number(row.count || 0)
+      })
+    }
+
+    // 2. Fetch latest messages and quotes
+    let latestMessages = []
+    let latestQuotes = []
+    try {
+      latestMessages = await latest('contactMessages')
+    } catch {
+      latestMessages = []
+    }
+    try {
+      latestQuotes = await latest('quoteRequests')
+    } catch {
+      latestQuotes = []
+    }
+
+    const newMessages = latestMessages.filter((m) => m.status === 'new').length || countsMap.contactMessages || 0
+    const newQuotes = latestQuotes.filter((q) => q.status === 'new').length || countsMap.quoteRequests || 0
+
+    return {
+      totals: {
+        products: countsMap.products || 0,
+        services: countsMap.services || 0,
+        reviews: countsMap.reviews || 0,
+        newMessages,
+        newQuotes,
+        users: countsMap.users || 0,
+        orders: countsMap.orders || 0,
+        categories: countsMap.categories || 0,
+        banners: countsMap.banners || 0,
+        blogPosts: countsMap.blogPosts || 0,
+        freelanceRequests: countsMap.freelanceRequests || 0,
+      },
+      latestMessages,
+      latestQuotes,
+    }
+  } catch (error) {
+    console.error('[getDashboardSummary] error:', error.message)
+    return {
+      totals: {
+        products: 0,
+        services: 0,
+        reviews: 0,
+        newMessages: 0,
+        newQuotes: 0,
+        users: 0,
+        orders: 0,
+        categories: 0,
+        banners: 0,
+        blogPosts: 0,
+        freelanceRequests: 0,
+      },
+      latestMessages: [],
+      latestQuotes: [],
+    }
   }
 }
 
@@ -199,3 +222,120 @@ export function updateOrderByAdmin(id, updates) {
 export function deleteOrderByAdmin(id) {
   return deleteDocument('orders', id)
 }
+
+const DEFAULT_STAFF = [
+  {
+    id: 'staff-main-admin',
+    name: 'Master Admin',
+    email: 'admin@dynamicworld.online',
+    password: 'admin@123',
+    role: 'main_admin',
+    phone: '',
+    isActive: true,
+    isPrimary: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'staff-editor',
+    name: 'Content Editor',
+    email: 'editor@dynamicworld.online',
+    password: 'editor@123',
+    role: 'editor',
+    phone: '',
+    isActive: true,
+    isPrimary: false,
+    createdAt: new Date().toISOString(),
+  },
+]
+
+export async function getAdminStaffList() {
+  const staff = await listCollection('adminStaff')
+  if (!staff || staff.length === 0) {
+    for (const item of DEFAULT_STAFF) {
+      await collectionRef('adminStaff').doc(item.id).set(item)
+    }
+    return DEFAULT_STAFF
+  }
+  return staff
+}
+
+export async function loginAdminStaff(email, password, expectedRole) {
+  const normalizedEmail = (email || '').toLowerCase().trim()
+  const staffList = await getAdminStaffList()
+  
+  let matched = staffList.find(
+    (s) => s.email.toLowerCase() === normalizedEmail && s.password === password,
+  )
+
+  // Alias support for admin / editor accounts across domains (dynamicworld / akiwa)
+  if (!matched && password === 'admin@123' && ['admin@dynamicworld.online', 'admin@akiwa.com', 'admin@gmail.com', 'admin@dynamicworld.com'].includes(normalizedEmail)) {
+    matched = staffList.find((s) => s.role === 'main_admin') || DEFAULT_STAFF[0]
+  } else if (!matched && password === 'editor@123' && ['editor@dynamicworld.online', 'editor@akiwa.com', 'editor@gmail.com', 'editor@dynamicworld.com'].includes(normalizedEmail)) {
+    matched = staffList.find((s) => s.role === 'editor') || DEFAULT_STAFF[1]
+  }
+
+  if (!matched) {
+    throw Object.assign(new Error('Invalid admin email or password.'), { statusCode: 401 })
+  }
+  if (matched.isActive === false) {
+    throw Object.assign(new Error('This staff account has been deactivated.'), { statusCode: 403 })
+  }
+  if (expectedRole && matched.role !== expectedRole) {
+    throw Object.assign(
+      new Error(`This account is assigned to "${matched.role === 'main_admin' ? 'Main Admin' : 'Editor'}" role. Please choose the correct role tab.`),
+      { statusCode: 403 },
+    )
+  }
+  return matched
+}
+
+export async function createAdminStaff(data) {
+  const staffList = await getAdminStaffList()
+  const exists = staffList.some((s) => s.email.toLowerCase() === data.email.toLowerCase().trim())
+  if (exists) {
+    throw Object.assign(new Error('An admin account with this email already exists.'), { statusCode: 409 })
+  }
+  const id = `staff-${Date.now()}`
+  const newStaff = {
+    id,
+    name: data.name.trim(),
+    email: data.email.toLowerCase().trim(),
+    password: data.password,
+    role: data.role || 'editor',
+    phone: data.phone || '',
+    isActive: true,
+    isPrimary: false,
+    createdAt: new Date().toISOString(),
+  }
+  await collectionRef('adminStaff').doc(id).set(newStaff)
+  return newStaff
+}
+
+export async function updateAdminStaff(id, updates) {
+  const current = await getDocument('adminStaff', id)
+  if (current.isPrimary && updates.role && updates.role !== 'main_admin') {
+    throw Object.assign(new Error('Cannot change role of primary Master Admin.'), { statusCode: 400 })
+  }
+  if (current.isPrimary && updates.isActive === false) {
+    throw Object.assign(new Error('Cannot deactivate primary Master Admin.'), { statusCode: 400 })
+  }
+  const allowed = {}
+  if (updates.name !== undefined) allowed.name = updates.name.trim()
+  if (updates.email !== undefined) allowed.email = updates.email.toLowerCase().trim()
+  if (updates.password !== undefined && updates.password.trim() !== '') allowed.password = updates.password
+  if (updates.role !== undefined && !current.isPrimary) allowed.role = updates.role
+  if (updates.phone !== undefined) allowed.phone = updates.phone
+  if (updates.isActive !== undefined && !current.isPrimary) allowed.isActive = updates.isActive
+  allowed.updatedAt = new Date().toISOString()
+
+  return updateDocument('adminStaff', id, allowed)
+}
+
+export async function deleteAdminStaff(id) {
+  const current = await getDocument('adminStaff', id)
+  if (current.isPrimary) {
+    throw Object.assign(new Error('Cannot delete the primary Master Admin.'), { statusCode: 400 })
+  }
+  return deleteDocument('adminStaff', id)
+}
+

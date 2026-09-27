@@ -39,48 +39,95 @@ function getProductImageReferences(product = {}) {
 function normalizeProductPayload(data, { partial = false } = {}) {
   const normalized = { ...data }
 
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'name')) {
-    normalized.name = data.name?.trim()
+  if (Object.prototype.hasOwnProperty.call(data, 'name') && data.name !== undefined) {
+    normalized.name = data.name?.trim() || 'Untitled Product'
+  } else if (!partial && !normalized.name) {
+    normalized.name = 'Untitled Product'
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'category')) {
-    normalized.category = data.category?.trim()
+  if (Object.prototype.hasOwnProperty.call(data, 'category') && data.category !== undefined) {
+    normalized.category = data.category?.trim() || 'General'
+  } else if (!partial && !normalized.category) {
+    normalized.category = 'General'
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'price')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'price') && data.price !== undefined) {
     normalized.price = Number(data.price || 0)
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'oldPrice')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'oldPrice') && data.oldPrice !== undefined) {
     normalized.oldPrice = data.oldPrice === '' || data.oldPrice == null ? null : Number(data.oldPrice)
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'offerExpiresAt')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'offerExpiresAt') && data.offerExpiresAt !== undefined) {
     normalized.offerExpiresAt = data.offerExpiresAt || null
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'badge')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'badge') && data.badge !== undefined) {
     normalized.badge = data.badge?.trim() || ''
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'short')) {
-    normalized.short = data.short?.trim()
+  if (Object.prototype.hasOwnProperty.call(data, 'brand') && data.brand !== undefined) {
+    normalized.brand = data.brand?.trim() || ''
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'details')) {
-    normalized.details = data.details?.trim()
+  if (Object.prototype.hasOwnProperty.call(data, 'modelName') && data.modelName !== undefined) {
+    normalized.modelName = data.modelName?.trim() || ''
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'specs')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'modelNumber') && data.modelNumber !== undefined) {
+    normalized.modelNumber = data.modelNumber?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'asin') && data.asin !== undefined) {
+    normalized.asin = data.asin?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'unitCount') && data.unitCount !== undefined) {
+    normalized.unitCount = data.unitCount?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'numberOfItems') && data.numberOfItems !== undefined) {
+    normalized.numberOfItems = data.numberOfItems?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'numberOfPacks') && data.numberOfPacks !== undefined) {
+    normalized.numberOfPacks = data.numberOfPacks?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'countryOfOrigin') && data.countryOfOrigin !== undefined) {
+    normalized.countryOfOrigin = data.countryOfOrigin?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'importerContact') && data.importerContact !== undefined) {
+    normalized.importerContact = data.importerContact?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'itemTypeName') && data.itemTypeName !== undefined) {
+    normalized.itemTypeName = data.itemTypeName?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'manufacturerPartNumber') && data.manufacturerPartNumber !== undefined) {
+    normalized.manufacturerPartNumber = data.manufacturerPartNumber?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'warranty') && data.warranty !== undefined) {
+    normalized.warranty = data.warranty?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'weight') && data.weight !== undefined) {
+    normalized.weight = data.weight?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'dimensions') && data.dimensions !== undefined) {
+    normalized.dimensions = data.dimensions?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'color') && data.color !== undefined) {
+    normalized.color = data.color?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'material') && data.material !== undefined) {
+    normalized.material = data.material?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'short') && data.short !== undefined) {
+    normalized.short = data.short?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'details') && data.details !== undefined) {
+    normalized.details = data.details?.trim() || ''
+  }
+  if (Object.prototype.hasOwnProperty.call(data, 'specs') && data.specs !== undefined) {
     normalized.specs = normalizeStringList(data.specs)
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'includes')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'includes') && data.includes !== undefined) {
     normalized.includes = normalizeStringList(data.includes)
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'images')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'images') && data.images !== undefined) {
     normalized.images = normalizeImageList(data.images)
   }
-  if (
-    !partial ||
-    Object.prototype.hasOwnProperty.call(data, 'image') ||
-    Object.prototype.hasOwnProperty.call(data, 'images')
-  ) {
-    const image = typeof data.image === 'string' ? data.image.trim() : ''
-    normalized.image = image || normalized.images?.[0] || ''
+  if (Object.prototype.hasOwnProperty.call(data, 'image') && data.image !== undefined) {
+    normalized.image = typeof data.image === 'string' ? data.image.trim() : ''
   }
-  if (!partial || Object.prototype.hasOwnProperty.call(data, 'isActive')) {
+  if (Object.prototype.hasOwnProperty.call(data, 'isActive') && data.isActive !== undefined) {
     normalized.isActive = data.isActive ?? true
   }
 
@@ -130,7 +177,11 @@ export async function createProduct(data) {
 
 export async function updateProduct(id, data) {
   const current = await getProductById(id)
-  const updated = await updateDocument('products', id, normalizeProductPayload(data, { partial: true }))
+  const normalized = normalizeProductPayload(data, { partial: true })
+  console.log('[backend updateProduct] incoming data:', data)
+  console.log('[backend updateProduct] normalized payload:', normalized)
+  const updated = await updateDocument('products', id, normalized)
+  console.log('[backend updateProduct] result from updateDocument:', updated)
   const removedImageUrls = getProductImageReferences(current).filter(
     (url) => !getProductImageReferences(updated).includes(url),
   )

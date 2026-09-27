@@ -11,10 +11,17 @@ const imageFields = [
   'servicesHeroImage',
   'reviewsHeroImage',
   'freelanceHeroImage',
+  'merchantUpiQrUrl',
 ]
 
 export const EMPTY_SITE_SETTINGS = {
   logoUrl: '',
+  merchantUpiId: 'daynamic@upi',
+  merchantUpiName: 'DAYNAMIC Official',
+  merchantUpiQrUrl: '',
+  enableUpiPayment: true,
+  enableCardPayment: false,
+  enableCodPayment: false,
   heroEyebrow: '',
   heroTitle: '',
   heroCopy: '',

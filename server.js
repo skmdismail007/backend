@@ -30,7 +30,7 @@ function connectDatabaseWithRetry() {
 async function startServer() {
   const app = createApp()
   const server = app.listen(env.port, env.host, () => {
-    console.log(`Backend API running on http://${env.host}:${env.port}`)
+    console.log(`Backend API live on http://${env.host}:${env.port}`)
   })
 
   connectDatabaseWithRetry()

@@ -29,30 +29,67 @@ export const productIdSchema = z.object({
   }),
 })
 
+const stringOptional = z.preprocess(
+  (value) => (value === null || value === undefined ? '' : String(value).trim()),
+  z.string().optional().default(''),
+)
+
+const productBodySchema = z.object({
+  id: z.string().optional(),
+  name: z.preprocess(
+    (value) => (value === null || value === undefined || String(value).trim() === '' ? 'Untitled Product' : String(value).trim()),
+    z.string().optional().default('Untitled Product'),
+  ),
+  category: z.preprocess(
+    (value) => (value === null || value === undefined || String(value).trim() === '' ? 'General' : String(value).trim()),
+    z.string().optional().default('General'),
+  ),
+  brand: stringOptional,
+  modelName: stringOptional,
+  modelNumber: stringOptional,
+  warranty: stringOptional,
+  countryOfOrigin: stringOptional,
+  weight: stringOptional,
+  color: stringOptional,
+  material: stringOptional,
+  unitCount: stringOptional,
+  numberOfItems: stringOptional,
+  numberOfPacks: stringOptional,
+  importerContact: stringOptional,
+  itemTypeName: stringOptional,
+  manufacturerPartNumber: stringOptional,
+  dimensions: stringOptional,
+  itemRank: stringOptional,
+  asin: stringOptional,
+  price: z.preprocess(
+    (value) => {
+      if (value === '' || value === null || value === undefined) return 0
+      const num = Number(value)
+      return Number.isNaN(num) || num < 0 ? 0 : num
+    },
+    z.number().nonnegative().optional().default(0),
+  ),
+  oldPrice: optionalMoneySchema,
+  offerExpiresAt: offerExpirySchema,
+  badge: stringOptional,
+  image: stringOptional,
+  images: z.array(imageReferenceSchema).max(10).optional(),
+  short: stringOptional,
+  details: stringOptional,
+  specs: z.array(z.string()).optional(),
+  includes: z.array(z.string()).optional(),
+  isActive: z.boolean().optional(),
+}).passthrough()
+
 export const productCreateSchema = z.object({
-  body: z.object({
-    id: z.string().min(2).optional(),
-    name: z.string().min(2),
-    category: z.string().min(2),
-    price: z.coerce.number().nonnegative(),
-    oldPrice: optionalMoneySchema,
-    offerExpiresAt: offerExpirySchema,
-    badge: z.string().optional(),
-    image: z.string().optional(),
-    images: z.array(imageReferenceSchema).max(10).default([]),
-    short: z.string().min(2),
-    details: z.string().min(2),
-    specs: z.array(z.string()).default([]),
-    includes: z.array(z.string()).default([]),
-    isActive: z.boolean().default(true),
-  }),
+  body: productBodySchema,
 })
 
-export const productUpdateSchema = productCreateSchema.extend({
+export const productUpdateSchema = z.object({
   params: z.object({
     id: z.string().min(1),
   }),
-  body: productCreateSchema.shape.body.partial(),
+  body: productBodySchema.partial().passthrough(),
 })
 
 export const productImageUploadSchema = z.object({

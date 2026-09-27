@@ -17,6 +17,9 @@ const paymentDetailsSchema = z.object({
   upi: z
     .object({
       upiId: z.string().min(3).optional(),
+      utr: z.string().optional(),
+      verified: z.boolean().optional(),
+      verifiedAt: z.string().optional(),
     })
     .optional(),
   notes: z.string().max(500).optional(),
