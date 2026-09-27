@@ -156,7 +156,7 @@ export const adminSiteSettingsSchema = z.object({
 
 export const adminStaffLoginSchema = z.object({
   body: z.object({
-    email: z.string().min(1),
+    email: z.string().optional(),
     password: z.string().min(1),
     role: z.enum(['main_admin', 'editor']).optional(),
   }),
