@@ -35,7 +35,7 @@ export function formatOrderWhatsAppText(order = {}) {
   const discount = Number(order.discount || 0)
   const coupon = order.couponCode ? ` (${order.couponCode})` : ''
   const paymentLabel = order.payment?.label || order.payment?.method?.toUpperCase() || 'UPI / Online'
-  const utr = order.payment?.upi?.utr || 'N/A'
+  const utr = order.utr || order.upiTransactionId || order.transactionId || order.payment?.upi?.utr || order.payment?.upi?.transactionId || 'N/A'
 
   let msg = `🛍️ *NEW ORDER RECEIVED*\n`
   msg += `\n`

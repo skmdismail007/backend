@@ -40,8 +40,13 @@ function normalizePayment(payment = {}, total = 0) {
   }
 
   if (method === 'upi' && payment.upi) {
+    const utrVal = payment.upi.utr || payment.upi.transactionId || payment.utr || payment.transactionId || ''
     normalized.upi = {
       upiId: payment.upi.upiId || '',
+      utr: utrVal,
+      transactionId: utrVal,
+      verified: Boolean(payment.upi.verified),
+      verifiedAt: payment.upi.verifiedAt || '',
     }
   }
 
@@ -223,13 +228,23 @@ export async function listUserOrders(userId) {
   return sortNewest(snapshot.docs.map(mapDoc))
 }
 
+function generateOrderTrackingId() {
+  const time = Date.now().toString().slice(-6)
+  const rand = Math.floor(1000 + Math.random() * 9000)
+  return `DAYNAMIC${time}${rand}`
+}
+
 export async function createUserOrder(userId, data) {
+  const utr = data.utr || data.upiTransactionId || data.transactionId || data.payment?.upi?.utr || data.payment?.upi?.transactionId || ''
   const orderPayload = {
     ...data,
     userId,
     payment: normalizePayment(data.payment, data.total),
     status: data.status || 'pending',
-    trackingNumber: data.trackingNumber || `AKIWA${Date.now().toString().slice(-8).toUpperCase()}`,
+    trackingNumber: data.trackingNumber || generateOrderTrackingId(),
+    utr,
+    upiTransactionId: utr,
+    transactionId: utr,
   }
 
   const order = await createDocument('orders', orderPayload)
