@@ -38,18 +38,18 @@ export function formatOrderWhatsAppText(order = {}) {
   const utr = order.payment?.upi?.utr || 'N/A'
 
   let msg = `🛍️ *NEW ORDER RECEIVED*\n`
-  msg += `─────────────────────────\n\n`
+  msg += `\n`
   msg += `👤 *CUSTOMER INFORMATION*\n`
   msg += `• *Name:* ${customerName}\n`
   msg += `• *Email:* ${customerEmail}\n`
   msg += `• *Phone:* ${customerPhone}\n`
   msg += `• *Address:* ${addressLine}\n\n`
-  msg += `─────────────────────────\n\n`
+  msg += `\n`
   msg += `📋 *ORDER DETAILS*\n`
   msg += `• *Order ID:* #${orderId}\n\n`
   msg += `📦 *ITEM(S) ORDERED:*\n`
   msg += `${itemsText || '1x Order Package'}\n\n`
-  msg += `─────────────────────────\n\n`
+  msg += `\n`
   msg += `💳 *PAYMENT & BILLING*\n`
   msg += `• *Payment Method:* ${paymentLabel}\n`
   msg += `• *UPI Transaction ID (UTR):* ${utr}\n`
@@ -57,9 +57,9 @@ export function formatOrderWhatsAppText(order = {}) {
   if (discount > 0) {
     msg += `• *Discount${coupon}:* -₹${discount.toLocaleString('en-IN')}\n`
   }
+  msg += `\n`
   msg += `• *Grand Total:* *₹${total}*\n\n`
-  msg += `─────────────────────────\n`
-  msg += `✨ *Sent automatically from DAYNAMIC Web Store.*`
+  msg += `✨DAYNAMIC Web Store.`
 
   return msg
 }
