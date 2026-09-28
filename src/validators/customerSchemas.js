@@ -27,11 +27,20 @@ const paymentDetailsSchema = z.object({
 
 export const reviewCreateSchema = z.object({
   body: z.object({
-    name: z.string().min(2),
-    project: z.string().min(2),
+    name: z.string().min(1).optional(),
+    userEmail: z.string().optional(),
+    userPhone: z.string().optional(),
+    userId: z.string().optional(),
+    productId: z.string().optional(),
+    productName: z.string().optional(),
+    project: z.string().optional(),
+    title: z.string().optional(),
     rating: z.coerce.number().int().min(1).max(5),
     image: z.string().optional(),
-    text: z.string().min(5).max(100, 'Review must be 100 characters or fewer'),
+    images: z.array(z.string()).optional(),
+    video: z.string().optional(),
+    text: z.string().min(1).max(5000),
+    verifiedPurchase: z.boolean().optional(),
   }),
 })
 

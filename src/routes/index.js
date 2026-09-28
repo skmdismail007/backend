@@ -8,6 +8,7 @@ import adminRoutes from './adminRoutes.js'
 import siteSettingsRoutes from './siteSettingsRoutes.js'
 import filesRoutes from './filesRoutes.js'
 import offerRoutes from './offerRoutes.js'
+import whatsappRoutes from './whatsappRoutes.js'
 
 const router = Router()
 
@@ -19,6 +20,7 @@ router.use('/search', searchRoutes)
 router.use('/site-settings', siteSettingsRoutes)
 router.use('/files', filesRoutes)
 router.use('/offers', offerRoutes)
+router.use('/whatsapp', whatsappRoutes)
 router.use('/admin', adminRoutes)
 
 export default router

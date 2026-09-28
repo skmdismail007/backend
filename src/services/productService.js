@@ -127,9 +127,33 @@ function normalizeProductPayload(data, { partial = false } = {}) {
   if (Object.prototype.hasOwnProperty.call(data, 'image') && data.image !== undefined) {
     normalized.image = typeof data.image === 'string' ? data.image.trim() : ''
   }
+
+  const isLocalPlaceholder = (url) => typeof url === 'string' && url.startsWith('/product-images/')
+  const realImages = (normalized.images || []).filter((img) => !isLocalPlaceholder(img))
+  const hasRealPrimary = !isLocalPlaceholder(normalized.image) && Boolean(normalized.image)
+
+  if (realImages.length > 0 || hasRealPrimary) {
+    normalized.images = realImages
+    if (isLocalPlaceholder(normalized.image) || !normalized.image) {
+      normalized.image = realImages[0] || ''
+    }
+  } else if (!partial) {
+    if (!normalized.image && (!normalized.images || !normalized.images.length)) {
+      normalized.image = '/product-images/cctv-dome.svg'
+      normalized.images = ['/product-images/cctv-dome.svg']
+    } else if (!normalized.image && normalized.images?.length) {
+      normalized.image = normalized.images[0]
+    }
+  }
   if (Object.prototype.hasOwnProperty.call(data, 'isActive') && data.isActive !== undefined) {
     normalized.isActive = data.isActive ?? true
   }
+  if (data.uploadedByRole !== undefined) normalized.uploadedByRole = String(data.uploadedByRole).trim()
+  if (data.uploadedByName !== undefined) normalized.uploadedByName = String(data.uploadedByName).trim()
+  if (data.uploadedAt !== undefined) normalized.uploadedAt = String(data.uploadedAt).trim()
+  if (data.updatedByRole !== undefined) normalized.updatedByRole = String(data.updatedByRole).trim()
+  if (data.updatedByName !== undefined) normalized.updatedByName = String(data.updatedByName).trim()
+  if (data.updatedAt !== undefined) normalized.updatedAt = String(data.updatedAt).trim()
 
   return normalized
 }
@@ -166,6 +190,13 @@ export function getProductById(id) {
 
 export async function createProduct(data) {
   const normalized = normalizeProductPayload(data)
+  if (!normalized.uploadedAt) {
+    normalized.uploadedAt = new Date().toISOString()
+  }
+  if (!normalized.uploadedByRole) {
+    normalized.uploadedByRole = 'Master Admin'
+    normalized.uploadedByName = 'Master Admin'
+  }
   if (env.nodeEnv !== 'production') console.debug('[backend] creating product in MySQL', {
     name: normalized.name,
     category: normalized.category,

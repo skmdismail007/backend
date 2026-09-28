@@ -54,20 +54,30 @@ function normalizePayment(payment = {}, total = 0) {
   return normalized
 }
 
-export async function listReviews({ approvedOnly = true } = {}) {
+export async function listReviews({ approvedOnly = true, productId = null } = {}) {
   let query = collectionRef('reviews')
   if (approvedOnly) query = query.where('isApproved', '==', true)
+  if (productId) query = query.where('productId', '==', productId)
   const snapshot = await query.get()
   return sortNewest(snapshot.docs.map(mapDoc))
 }
 
 export async function createReview(data) {
   const review = {
-    name: data.name,
-    project: data.project,
+    name: data.name?.trim() || 'Verified Customer',
+    userEmail: data.userEmail?.trim() || '',
+    userPhone: data.userPhone?.trim() || '',
+    userId: data.userId?.trim() || '',
+    productId: data.productId?.trim() || '',
+    productName: data.productName?.trim() || data.project?.trim() || '',
+    project: data.project?.trim() || data.productName?.trim() || 'General',
     rating: Number(data.rating || 5),
-    image: data.image?.trim() || '',
-    text: data.text,
+    title: data.title?.trim() || '',
+    text: data.text?.trim() || '',
+    image: data.image?.trim() || (Array.isArray(data.images) && data.images[0] ? data.images[0] : ''),
+    images: Array.isArray(data.images) ? data.images : (data.image ? [data.image] : []),
+    video: data.video?.trim() || '',
+    verifiedPurchase: data.verifiedPurchase ?? true,
     isApproved: true,
   }
   return createDocument('reviews', review)

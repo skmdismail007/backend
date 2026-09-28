@@ -23,20 +23,22 @@ export async function postProductImages(request, response) {
       return response.status(404).json({ message: 'Product not found' })
     }
 
-    // Check total image count won't exceed 10
-    const currentImages = product.images || []
-    if (currentImages.length + files.length > 10) {
+    // Filter out local fallback placeholders if real images are being uploaded
+    const isLocalPlaceholder = (url) => typeof url === 'string' && url.startsWith('/product-images/')
+    const realExistingImages = (product.images || []).filter((url) => !isLocalPlaceholder(url))
+    if (realExistingImages.length + files.length > 10) {
       return response.status(400).json({
-        message: `Cannot exceed 10 images. Current: ${currentImages.length}, Trying to add: ${files.length}`,
+        message: `Cannot exceed 10 images. Current: ${realExistingImages.length}, Trying to add: ${files.length}`,
       })
     }
 
     // Upload all files to backend-managed storage.
     const uploadedUrls = await Promise.all(files.map((file) => uploadProductImage(file, productId)))
 
-    // Update product with new images
-    const updatedImages = [...currentImages, ...uploadedUrls]
-    const primaryImage = product.image || currentImages[0] || uploadedUrls[0] || ''
+    // Update product with new images and make uploaded image primary if old was local placeholder
+    const updatedImages = [...realExistingImages, ...uploadedUrls]
+    const primaryImage =
+      (product.image && !isLocalPlaceholder(product.image)) ? product.image : (uploadedUrls[0] || realExistingImages[0] || '')
     const updatedProduct = await updateProduct(productId, {
       images: updatedImages,
       image: primaryImage,

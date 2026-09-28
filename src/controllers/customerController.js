@@ -22,8 +22,9 @@ import {
   cancelUserOrder,
 } from '../services/customerService.js'
 
-export async function getReviews(_request, response) {
-  response.json(await listReviews())
+export async function getReviews(request, response) {
+  const { productId } = request.query || {}
+  response.json(await listReviews({ productId: productId || null }))
 }
 
 export async function postReview(request, response) {
